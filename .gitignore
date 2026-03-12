@@ -1,0 +1,24 @@
+# Python cache files
+__pycache__/
+*.pyc
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment
+.venv/
+
+
+# MacOS system files
+.DS_Store
+
+#Data folders: No contents, but keep the folders for organization
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# model weights
+*.pt
+*.pth
+*.ckpt

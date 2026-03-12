@@ -1,0 +1,1 @@
+This folder is used to store results of training runs (Weights & Performance indicators)

@@ -1,0 +1,97 @@
+A deep learning project exploring CNN and Vision Transformer architectures for solving alphanumerical CAPTCHA images.
+
+# Alpha numerical CAPTCHA Solver - CNN+
+
+## Current Status
+
+## Project Overview
+This project explores machine learning approaches for solving image-based CAPTCHAs.
+The goal is to build a baseline Convolutional Neural Network (CNN) Captcha solver from scratch and compare its performance against alternative architectures.
+
+The project focuses on practical experimentation and interatice improvement rather than building a production system. The main objective is to evaluate how different architectures perform on distroted character recognition tasks.
+
+## Project-Goals
+1. Building a working **CNN-based CAPTCHA solver**
+2. Establish a reproducible **training and evaluation pipeline** using a synthetic data pipeline of my creation
+3. Experiment with alternative architectures, in the form of
+    - Modifications to CNN Architecture
+    - A small ViT (self-trained)
+    - Using a pretrained ViT and building my own classifier, fine tuning it for OCR solving
+
+4. Compare model performance in terms of:
+    - accuracy
+    - training stability
+    - generalization to unseen CAPTCHA variations
+    - Response to non OCR data, e.g. faded letters from old books
+5. Extra exploration (if time permits):
+    - Data effecient image transformer (DeiT) using distillation approaches and my CNN model
+    - Improved data augmentation tequniques 
+    - Pretrained ViT encoder fine-tuning 
+
+## Approach (Updated based on actual choices)
+**Baseline Model - Self trained CNN**
+The intial model uses a convolutional architecture to extract spatial features from CAPTCHA images
+
+Planned Pipeline:
+1. Image preprocessing
+    - Possible Augmentation
+2. Convolutional feature extraction
+3. Feature compression
+4. Character Classification
+
+## Dataset
+The dataset consits of alphanumerical CAPTCHA images grouped by character labels
+
+Images are preprocessed using:
+1. Grayscale conversion
+2. resizig to consitent resolution
+3. normalization
+
+Additional augmentations may include:
+1. random inversion
+2. noise injection
+3. geometric distortions
+4. compression artifacts
+
+## Repository Structure (As it stands)
+
+captcha-ai/
+├── .gitignore              # Tells Git which files/folders to ignore
+├── README.md               # Main project overview, goals, and setup notes
+├── requirements.txt        # Python package dependencies for reproducing the environment
+│
+├── data/                   # Data storage
+│   ├── raw/                # Original, untouched CAPTCHA images
+│   └── processed/          # Cleaned, resized, transformed, or augmented data
+│
+├── notebooks/              # Jupyter notebooks for quick tests, visualizations, and debugging
+│
+├── src/                    # Main source code of the project
+│   ├── dataset/            # Data loading, preprocessing, and dataset classes
+│   ├── models/             # Model architectures (CNNs and transformer variant)
+│   ├── training/           # Training loops, evaluation code, and experiment scripts
+│   └── utils/              # Helper functions such as plotting, saving, logging, etc.
+│
+├── experiments/            # Saved experiment outputs, metrics, configs, and model weights
+│
+└── tests/                  # Tests to check whether code components behave correctly
+
+## Tools and Frameworks (To be filled out)
+- Python
+- PyTorch
+- 
+- VS - code
+
+**Note on generative AI**
+AI-assited tools are used to accelarate experminetation and iteration for debugging and code refactoring. 
+All methodological choices, archtectural decisions, and critical desgin componets are defined by the project author
+
+## Motivation
+For me personally, this project objective serves as a way to overcome the hurdle of starting independent technical work, improving project planning, learning to allocate time and ressources effectively.
+
+The goal of this project is to learn and experiment with applications of Deeplearning based off APS360 - Introduction to Deep Learning. At its core I am exploring modern computer vision techniques while building a practical CAPTCHA-solving pipeline. 
+
+Progress will be incremental: The main focus is to get the first model going, then improvements can be explored
+
+## License
+This repository is intended for educational and research purposes. 
