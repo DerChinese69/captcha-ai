@@ -62,7 +62,7 @@ $csvPath = $outputDir . 'ground_truth_index.csv';
 $csvFile = fopen($csvPath, 'w');
 
 // Write CSV header
-fputcsv($csvFile, ['filename', 'label']);
+fputcsv($csvFile, ['filename', 'label'], ',', '"', '');
 
 
 /*

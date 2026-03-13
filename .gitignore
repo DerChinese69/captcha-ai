@@ -25,3 +25,6 @@ vendor/
 *.pt
 *.pth
 *.ckpt
+
+#other
+generation_log.txt
