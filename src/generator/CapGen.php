@@ -4,7 +4,7 @@
 // To run: php data/CapGen.php [char_length] [num_samples] [width] [height] [charset]
 // Data will be saved in /data/raw/ with folder naming convention: 4Char_100000_CapGen
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Gregwar\Captcha\CaptchaBuilder;
 use Gregwar\Captcha\PhraseBuilder;
@@ -18,8 +18,8 @@ use Gregwar\Captcha\PhraseBuilder;
 $defaultLength = 4;
 $defaultNumSamples = 10;
 $defaultCharset = '1234679ACDEFGHJKMNPQRTUVWXYZabcdefghjkmnpqrtuvwxyz';
-$defaultWidth = 200;
-$defaultHeight = 80;
+$defaultWidth = 192;
+$defaultHeight = 64;
 
 
 /*
@@ -42,7 +42,7 @@ $charset = isset($argv[5]) ? $argv[5] : $defaultCharset;
 |--------------------------------------------------------------------------
 */
 
-$rootDir = __DIR__ . '/../data/raw/';
+$rootDir = __DIR__ . '/../../data/raw/';
 $runFolder = $length . "Char_" . $numSamples . "_CapGen";
 $outputDir = $rootDir . $runFolder . '/';
 
@@ -110,7 +110,10 @@ for ($i = 0; $i < $numSamples; $i++) {
     // Write label entry to CSV
     fputcsv($csvFile, [$filename, $phrase], ',', '"', '');
 
-    echo '[' . ($i + 1) . '/' . $numSamples . "] $filename\n";
+    // echo '[' . ($i + 1) . '/' . $numSamples . "] $filename\n";
+    if ((($i + 1) % 1000) === 0 || ($i + 1) === $numSamples) {
+    echo '[' . ($i + 1) . '/' . $numSamples . "]\n";
+    }
 }
 
 
