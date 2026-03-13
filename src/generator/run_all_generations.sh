@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-NUM_SAMPLES=100000
+NUM_SAMPLES=2000
 
 for LENGTH in 4 5 6 7 8 9 10
 do
