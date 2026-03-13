@@ -1,1 +1,0 @@
-Notebooks are used for prototyping, testing and debugging. Basically a familiar Sandbox coming from Google Colab
