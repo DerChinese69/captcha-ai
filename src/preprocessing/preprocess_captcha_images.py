@@ -2,6 +2,7 @@ from pathlib import Path
 from PIL import Image
 import numpy as np
 import shutil
+import argparse
 
 # automatically detect project root
 repo_root = Path(__file__).resolve().parents[2]
@@ -12,19 +13,21 @@ output_root = repo_root / "data" / "processed"
 output_root.mkdir(parents=True, exist_ok=True)
 
 # --- Settings ---
-progress_every = 50
+progress_every = 500
 output_suffix = "_grayscale"
-
-# Choose what to process:
-# Option 1: process everything
-selected_batches = None
-
-# Option 2: process only specific folders
-selected_batches = {
- "4Char_2000_CapGen"}
-
 valid_extensions = {".jpg", ".jpeg", ".png"}
 
+# Choose what to process (from command line args or process all if none provided):
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--batches",
+    nargs="+",
+    help="Names of batch folders to process (e.g. 4Char_2000_CapGen)"
+)
+
+args = parser.parse_args()
+
+selected_batches = set(args.batches) if args.batches else None
 
 def should_process_batch(batch_name, selected_batches=None):
     # Returns True when no filter is provided, or when the batch name is in the allow-list.
