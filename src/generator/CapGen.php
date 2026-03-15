@@ -17,13 +17,13 @@ use Gregwar\Captcha\PhraseBuilder;
 
 $defaultLength = 4;
 $defaultNumSamples = 100;
-/* Exclude easily confusable characters (visually confirmed by me)
-1 l 
-5 S s
+/* Exclude easily confusable characters – would not be used in real world applications (visually confirmed by checking generated samples):
+1 l I 
+5 S s Z z
 0 O o
 */
 // I decided to inlude most characters to get better insights into model performance on confusable characters. The dataset can be filtered later if needed.
-// Z 2 ; B 8 are left in to see how the model performs on them, as they can be confusable in certain fonts and styles.
+// Z 2 ; B 8; i are left in to see how the model performs on them, as they can be confusable in certain fonts and styles.
 $defaultCharset = '2346789ABCDEFGHJKLMNPQRTUVWXYabcdefghijkmnpqrtuvwxy';
 $defaultWidth = 192;
 $defaultHeight = 64;
