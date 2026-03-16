@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import shutil
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # automatically detect project root
 repo_root = Path(__file__).resolve().parents[2]
@@ -23,6 +24,18 @@ parser.add_argument(
     "--batches",
     nargs="+",
     help="Names of batch folders to process (e.g. 4Char_2000_CapGen)"
+)
+parser.add_argument(
+    "--png-compress-level",
+    type=int,
+    default=6,
+    help="PNG compression level 0-9 (lower is faster, larger files). Default: 6"
+)
+parser.add_argument(
+    "--workers",
+    type=int,
+    default=1,
+    help="Number of parallel workers for image processing. Default: 1"
 )
 
 args = parser.parse_args()
@@ -59,19 +72,32 @@ def compute_region_means(arr):
 
 def standardize_polarity(img_path):
     # Converts to grayscale and inverts when center is brighter than outer regions.
-    img = Image.open(img_path).convert("L")
-    arr = np.array(img)
+    with Image.open(img_path) as img:
+        arr = np.array(img.convert("L"))
 
     centre_mean, outer_mean = compute_region_means(arr)
 
     if centre_mean > outer_mean:
         arr = 255 - arr
 
-    return Image.fromarray(arr.astype(np.uint8)), centre_mean, outer_mean
+    return Image.fromarray(arr.astype(np.uint8))
+
+
+def process_single_image(file_path, out_batch_dir, png_compress_level):
+    processed_img = standardize_polarity(file_path)
+    output_path = out_batch_dir / file_path.name
+
+    if output_path.suffix.lower() == ".png":
+        processed_img.save(output_path, compress_level=png_compress_level)
+    else:
+        processed_img.save(output_path)
+
+    processed_img.close()
 
 
 count = 0
 skipped = 0
+failed = 0
 
 # Walk each item in the raw input root (batch folders and possible root-level CSV files).
 for item in input_root.iterdir():
@@ -88,19 +114,13 @@ for item in input_root.iterdir():
 
         print(f"Processing batch: {batch_name}")
 
+        image_files = []
+
         for file_path in item.iterdir():
 
             # --- Image processing ---
             if file_path.suffix.lower() in valid_extensions:
-
-                processed_img, centre_mean, outer_mean = standardize_polarity(file_path)
-
-                output_path = out_batch_dir / file_path.name
-                processed_img.save(output_path)
-
-                count += 1
-                if count % progress_every == 0:
-                    print(f"Processed {count} images...")
+                image_files.append(file_path)
 
             # --- CSV handling ---
             elif file_path.suffix.lower() == ".csv":
@@ -111,14 +131,49 @@ for item in input_root.iterdir():
             else:
                 skipped += 1
 
+        if args.workers <= 1:
+            for file_path in image_files:
+                try:
+                    process_single_image(file_path, out_batch_dir, args.png_compress_level)
+                    count += 1
+                    if count % progress_every == 0:
+                        print(f"Processed {count} images...")
+                except Exception as exc:
+                    failed += 1
+                    print(f"Failed {file_path.name}: {exc}")
+        else:
+            with ThreadPoolExecutor(max_workers=args.workers) as executor:
+                futures = {
+                    executor.submit(
+                        process_single_image,
+                        file_path,
+                        out_batch_dir,
+                        args.png_compress_level,
+                    ): file_path
+                    for file_path in image_files
+                }
+
+                for future in as_completed(futures):
+                    file_path = futures[future]
+                    try:
+                        future.result()
+                        count += 1
+                        if count % progress_every == 0:
+                            print(f"Processed {count} images...")
+                    except Exception as exc:
+                        failed += 1
+                        print(f"Failed {file_path.name}: {exc}")
+
 
     # Root-level CSV files (if any exist).
     elif item.is_file() and item.suffix.lower() == ".csv":
         shutil.copy2(item, output_root / item.name)
-        print(f"Copied CSV for batch {batch_name}")
+        print(f"Copied root CSV: {item.name}")
 
 print(f"Done. Processed {count} images.")
 print(f"Skipped {skipped} non-image files.")
+if failed:
+    print(f"Failed to process {failed} images.")
 
 if __name__ == "__main__":
     print("Starting preprocessing...")

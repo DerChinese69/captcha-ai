@@ -25,7 +25,7 @@ def find_project_root(marker_folder="data"):
 class CaptchaDataset(Dataset):
     def __init__(
         self,
-        data_dir="data/processed/5Char_2000_CapGen_grayscale",
+        data_dir="data/processed/5Char_100000_CapGen_grayscale",
         csv_name="ground_truth_index.csv",
         charset="2346789ABCDEFGHJKLMNPQRTUVWXYabcdefghijkmnpqrtuvwxy",
         label_length=5,

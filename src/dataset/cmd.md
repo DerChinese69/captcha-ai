@@ -62,7 +62,8 @@ Controls how many subprocesses load data in parallel.
 *pin_memory*
 Useful mainly when training on GPU.
 Default: False
-Can later set to True for CUDA training
+Can later set to True for CUDA training, faster transfer to GPU
+MPS not supported - keep default
 
 *drop_last*
 Drops the last incomplete batch if it is smaller than batch_size. (Optional use)
