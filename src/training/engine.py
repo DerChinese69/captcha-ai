@@ -14,11 +14,13 @@ def compute_metrics(outputs, labels):
         seq_acc: float
         pos_accs: list[float]
     """
+    # Get predicted classes
     preds = outputs.argmax(dim=-1)
-
+    # Compute character-level accuracy
     char_acc = (preds == labels).float().mean().item()
+    # Compute full-sequence accuracy
     seq_acc = (preds == labels).all(dim=1).float().mean().item()
-
+    # Compute per-position accuracy
     pos_accs = []
     for pos in range(labels.size(1)):
         pos_acc = (preds[:, pos] == labels[:, pos]).float().mean().item()
@@ -32,6 +34,7 @@ def unpack_batch(batch):
     - (images, labels)
     - (images, labels, filenames)
     """
+    # Unpack batch with flexible handling of optional filenames
     if isinstance(batch, (list, tuple)):
         if len(batch) == 2:
             images, labels = batch
@@ -52,26 +55,33 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
     Returns:
         epoch_loss, epoch_char_acc, epoch_seq_acc
     """
+    # Set model to training mode
     model.train()
 
+    # Initialize running metrics
     running_loss = 0.0
     running_char_acc = 0.0
     running_seq_acc = 0.0
     num_batches = 0
 
+    # Iterate over batches
     for batch in loader:
         images, labels, _ = unpack_batch(batch)
         images = images.to(device)
         labels = labels.to(device)
 
+        # Zero gradients
         optimizer.zero_grad()
-
+        
+        # Forward pass
         outputs = model(images)
         loss = criterion(outputs.view(-1, num_char_classes), labels.view(-1))
 
+        # Backward pass and optimization
         loss.backward()
         optimizer.step()
 
+        #Log metrics
         char_acc, seq_acc, _ = compute_metrics(outputs, labels)
 
         running_loss += loss.item()
@@ -79,6 +89,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
         running_seq_acc += seq_acc
         num_batches += 1
 
+    # Compute epoch-level metrics (Training)
     epoch_loss = running_loss / num_batches
     epoch_char_acc = running_char_acc / num_batches
     epoch_seq_acc = running_seq_acc / num_batches
@@ -95,15 +106,20 @@ def validate_one_epoch(model, loader, criterion, device, num_char_classes, label
         epoch_seq_acc
         epoch_pos_accs
     """
+    # Set model to evaluation mode
     model.eval()
 
+    # Initialize running metrics
     running_loss = 0.0
     running_char_acc = 0.0
     running_seq_acc = 0.0
     running_pos_accs = [0.0] * label_length
     num_batches = 0
 
+    # No gradient computation during validation
     with torch.no_grad():
+
+        # Iterate over batches
         for batch in loader:
             images, labels, _ = unpack_batch(batch)
 
@@ -112,22 +128,28 @@ def validate_one_epoch(model, loader, criterion, device, num_char_classes, label
 
             outputs = model(images)
 
+            # CrossEntropyLoss expects input of shape [B, num_classes] and target of shape [B]
             loss = criterion(outputs.view(-1, num_char_classes), labels.view(-1))
 
+            # Compute metrics
             char_acc, seq_acc, pos_accs = compute_metrics(outputs, labels)
 
             running_loss += loss.item()
             running_char_acc += char_acc
             running_seq_acc += seq_acc
 
+            # Accumulate per-position accuracies
             for i in range(label_length):
                 running_pos_accs[i] += pos_accs[i]
 
             num_batches += 1
-
+            
+    # Compute epoch-level metrics (Validation)
     epoch_loss = running_loss / num_batches
     epoch_char_acc = running_char_acc / num_batches
     epoch_seq_acc = running_seq_acc / num_batches
     epoch_pos_accs = [x / num_batches for x in running_pos_accs]
 
     return epoch_loss, epoch_char_acc, epoch_seq_acc, epoch_pos_accs
+
+    

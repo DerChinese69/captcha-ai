@@ -44,7 +44,7 @@ class FiveCharCaptchaCNN(nn.Module):
             nn.Flatten(),  # Flatten the output from convolutional layers
             nn.Linear(128*4*8, 512),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.38),
 
             nn.Linear(512, num_char_classes * self.label_length)  # Output: 51 * 5 = 255
         )

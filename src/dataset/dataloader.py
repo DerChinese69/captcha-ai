@@ -42,7 +42,7 @@ class CaptchaDataset(Dataset):
         self.valid_extensions = {ext.lower() for ext in valid_extensions}
         self.return_filenames = return_filenames
 
-        # Character mappings
+        # Character mappings as dictionaries for encoding/decoding
         self.char_to_idx = {char: idx for idx, char in enumerate(self.charset)}
         self.idx_to_char = {idx: char for char, idx in self.char_to_idx.items()}
 
@@ -59,6 +59,7 @@ class CaptchaDataset(Dataset):
         # Read labels CSV
         self.labels_df = pd.read_csv(self.csv_path)
 
+        # Validate existence of required columns
         required_columns = {"filename", "label"}
         if not required_columns.issubset(self.labels_df.columns):
             raise ValueError(
@@ -146,7 +147,7 @@ def create_dataloaders(
     total_ratio = train_ratio + val_ratio + test_ratio
     if not math.isclose(total_ratio, 1.0, rel_tol=1e-6):
         raise ValueError("train_ratio + val_ratio + test_ratio must equal 1.0")
-
+    #Load full dataset
     dataset = CaptchaDataset(
         data_dir=data_dir,
         csv_name=csv_name,
@@ -156,19 +157,22 @@ def create_dataloaders(
         subset_fraction=subset_fraction,
     )
 
+    # Create splits
     total_size = len(dataset)
     train_size = int(total_size * train_ratio)
     val_size = int(total_size * val_ratio)
     test_size = total_size - train_size - val_size
 
+    # Use a fixed random seed for reproducibility
     generator = torch.Generator().manual_seed(random_seed)
 
+    # Perform the split
     train_dataset, val_dataset, test_dataset = random_split(
         dataset,
         [train_size, val_size, test_size],
         generator=generator
     )
-
+    # Create individual DataLoaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
