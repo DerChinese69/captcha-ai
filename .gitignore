@@ -22,6 +22,7 @@ experiments/*
 
 #Data folders: Completely Local, not shared across machines
 vendor/
+reports/
 
 # model weights
 *.pt
