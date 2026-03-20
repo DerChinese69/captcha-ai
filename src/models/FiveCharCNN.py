@@ -20,7 +20,7 @@ class FiveCharCaptchaCNN(nn.Module):
             
             nn.MaxPool2d(kernel_size=(2,1), stride=(2,1)),          # Output: 32 x 32 x 192
 
-            nn.Conv2d(32,64, kernel_size=3, stride=1, padding=1),   # Output: 64 x 32 x 192
+            nn.Conv2d(32,64, kernel_size=3, sride=1, padding=1),   # Output: 64 x 32 x 192
             nn.BatchNorm2d(64),
             nn.ReLU(),
 
