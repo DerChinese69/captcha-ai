@@ -13,9 +13,11 @@ __pycache__/
 .DS_Store
 
 #Data folders: No contents, but keep the folders for organization
+data/orders/*
 data/raw/*
 data/processed/*
 experiments/*
+!data/orders/.gitkeep
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !experiments/.gitkeep

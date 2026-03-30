@@ -1,1 +1,0 @@
-This folder is used as a container to check that each component and program in the src folder perform their tasks correctly
