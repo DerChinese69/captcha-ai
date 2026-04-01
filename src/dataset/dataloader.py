@@ -25,9 +25,9 @@ def find_project_root(marker_folder="data"):
 class CaptchaDataset(Dataset):
     def __init__(
         self,
-        data_dir="data/processed/5Char_100000_CapGen_grayscale",
+        data_dir="data/processed/5Char_10000_Test_grayscale",
         csv_name="ground_truth_index.csv",
-        charset="2346789ABCDEFGHJKLMNPQRTUVWXYabcdefghijkmnpqrtuvwxy",
+        charset="0123456789",
         label_length=5,
         valid_extensions={".jpg", ".jpeg", ".png"},
         return_filenames=False,
@@ -127,7 +127,7 @@ class CaptchaDataset(Dataset):
 
 
 def create_dataloaders(
-    data_dir="data/processed/5Char_2000_CapGen_grayscale",
+    data_dir="data/processed/5Char_10000_Test_grayscale",
     csv_name="ground_truth_index.csv",
     batch_size=32,
     train_ratio=0.7,
@@ -139,7 +139,7 @@ def create_dataloaders(
     num_workers=0,
     pin_memory=False,
     drop_last=False,
-    charset="2346789ABCDEFGHJKLMNPQRTUVWXYabcdefghijkmnpqrtuvwxy",
+    charset="012346789",
     subset_fraction=1.0,
     return_filenames=False,
 ):

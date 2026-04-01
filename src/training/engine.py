@@ -55,33 +55,31 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
     Returns:
         epoch_loss, epoch_char_acc, epoch_seq_acc
     """
-    # Set model to training mode
+    import time
+    start_time = time.time()
+
     model.train()
 
-    # Initialize running metrics
     running_loss = 0.0
     running_char_acc = 0.0
     running_seq_acc = 0.0
     num_batches = 0
 
-    # Iterate over batches
-    for batch in loader:
+    total_batches = len(loader)
+
+    for batch_idx, batch in enumerate(loader):
         images, labels, _ = unpack_batch(batch)
         images = images.to(device)
         labels = labels.to(device)
 
-        # Zero gradients
         optimizer.zero_grad()
         
-        # Forward pass
         outputs = model(images)
         loss = criterion(outputs.view(-1, num_char_classes), labels.view(-1))
 
-        # Backward pass and optimization
         loss.backward()
         optimizer.step()
 
-        #Log metrics
         char_acc, seq_acc, _ = compute_metrics(outputs, labels)
 
         running_loss += loss.item()
@@ -89,7 +87,17 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
         running_seq_acc += seq_acc
         num_batches += 1
 
-    # Compute epoch-level metrics (Training)
+        # 🔹 Progress print every 100 batches (adjust if needed)
+        if batch_idx % 100 == 0:
+            elapsed = time.time() - start_time
+            print(
+                f"[{batch_idx}/{total_batches}] "
+                f"Loss: {loss.item():.4f} | "
+                f"Char Acc: {char_acc:.4f} | "
+                f"Seq Acc: {seq_acc:.4f} | "
+                f"Time: {elapsed:.1f}s"
+            )
+
     epoch_loss = running_loss / num_batches
     epoch_char_acc = running_char_acc / num_batches
     epoch_seq_acc = running_seq_acc / num_batches
