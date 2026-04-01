@@ -33,3 +33,4 @@ notebooks/development/
 
 #other
 generation_log.txt
+smoke_test.py
