@@ -29,8 +29,8 @@ The focus is on **practical experimentation and iterative improvement**, not pro
 Clone the repository and create a virtual environment:
 
 ```bash
-git clone <your-repo-url>
-cd <your-repo-name>
+git clone <https://github.com/DerChinese69/captcha-ai.git>
+cd <captcha-ai>
 
 python3 -m venv .venv
 source .venv/bin/activate
