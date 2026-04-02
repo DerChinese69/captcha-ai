@@ -21,7 +21,7 @@ class PatchEmbedding(nn.Module):
 
     def forward(self, x):
         # x: [B, 1, 64, 192]
-        x = self.proj(x)                     # [B, 128, 8, 12]
+        x = self.proj(x)                    # [B, 128, 8, 12]
         x = x.flatten(2)                    # [B, 128, 96]
         x = x.transpose(1, 2)               # [B, 96, 128]
         return x

@@ -63,7 +63,7 @@ class CaptchaCNN(nn.Module):
 
     def forward(self, x):
         x = self.features(x)                                # [B, 256, 1, 5]
-        x = self.classifier(x)                               # [B, 50]
+        x = self.classifier(x)                              # [B, 50]
         x = x.view(-1, self.label_length, self.num_char_classes)
         return x                                             # [B, 5, 10]
     
