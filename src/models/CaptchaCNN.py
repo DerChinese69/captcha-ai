@@ -6,12 +6,13 @@ class WidthPad(nn.Module):
     def __init__(self, pad_right=1):
         super().__init__()
         self.pad_right = pad_right
+        
 
     def forward(self, x):
         return F.pad(x, (0, self.pad_right, 0, 0))
 
-class FiveCharCaptchaCNN(nn.Module):
-    def __init__(self, num_char_classes=10, label_length=5):
+class CaptchaCNN(nn.Module):
+    def __init__(self, num_char_classes=10, label_length=5, dropout=0.3):
         super().__init__()
         self.num_char_classes = num_char_classes
         self.label_length = label_length
@@ -56,7 +57,7 @@ class FiveCharCaptchaCNN(nn.Module):
             nn.Flatten(),                                    # -> 256*5
             nn.Linear(256 * 5, 512),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(dropout),
             nn.Linear(512, label_length * num_char_classes)  # -> 5*10
         )
 

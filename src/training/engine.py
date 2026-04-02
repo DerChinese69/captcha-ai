@@ -49,12 +49,6 @@ def unpack_batch(batch):
     return images, labels, filenames
 
 def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classes):
-    """
-    Train the model for one epoch.
-
-    Returns:
-        epoch_loss, epoch_char_acc, epoch_seq_acc
-    """
     import time
     start_time = time.time()
 
@@ -66,6 +60,9 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
     num_batches = 0
 
     total_batches = len(loader)
+    current_lr = optimizer.param_groups[0]["lr"]
+
+    print(f"Training with LR = {current_lr:.6f}")
 
     for batch_idx, batch in enumerate(loader):
         images, labels, _ = unpack_batch(batch)
@@ -87,7 +84,6 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
         running_seq_acc += seq_acc
         num_batches += 1
 
-        # 🔹 Progress print every 100 batches (adjust if needed)
         if batch_idx % 100 == 0:
             elapsed = time.time() - start_time
             print(
@@ -102,7 +98,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
     epoch_char_acc = running_char_acc / num_batches
     epoch_seq_acc = running_seq_acc / num_batches
 
-    return epoch_loss, epoch_char_acc, epoch_seq_acc
+    return epoch_loss, epoch_char_acc, epoch_seq_acc, current_lr
 
 def validate_one_epoch(model, loader, criterion, device, num_char_classes, label_length):
     """

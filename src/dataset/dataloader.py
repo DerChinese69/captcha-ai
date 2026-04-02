@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 
+
 def find_project_root(marker_folder="data"):
     """
     Tries to find the project root by walking upward until it finds /data.
@@ -22,13 +23,14 @@ def find_project_root(marker_folder="data"):
         f"Could not find project root. No folder named '{marker_folder}' found upward from {current}"
     )
 
+
 class CaptchaDataset(Dataset):
     def __init__(
         self,
         data_dir="data/processed/5Char_10000_Test_grayscale",
         csv_name="ground_truth_index.csv",
         charset="0123456789",
-        label_length=5,
+        label_length=None,
         valid_extensions={".jpg", ".jpeg", ".png"},
         return_filenames=False,
         subset_fraction=1.0,
@@ -38,7 +40,6 @@ class CaptchaDataset(Dataset):
         self.csv_path = self.data_dir / csv_name
 
         self.charset = charset
-        self.label_length = label_length
         self.valid_extensions = {ext.lower() for ext in valid_extensions}
         self.return_filenames = return_filenames
 
@@ -59,6 +60,17 @@ class CaptchaDataset(Dataset):
         # Read labels CSV
         self.labels_df = pd.read_csv(self.csv_path)
 
+        # FORCE label column to string
+        self.labels_df["label"] = self.labels_df["label"].astype(str)
+        self.labels_df["filename"] = self.labels_df["filename"].astype(str)
+
+        # Pad labels back to correct length if needed
+        if label_length is None:
+            max_len = self.labels_df["label"].str.len().max()
+            self.labels_df["label"] = self.labels_df["label"].str.zfill(max_len)
+        else:
+            self.labels_df["label"] = self.labels_df["label"].str.zfill(label_length)
+
         # Validate existence of required columns
         required_columns = {"filename", "label"}
         if not required_columns.issubset(self.labels_df.columns):
@@ -73,6 +85,19 @@ class CaptchaDataset(Dataset):
         if subset_fraction < 1.0:
             n_subset = max(1, int(len(self.labels_df) * subset_fraction))
             self.labels_df = self.labels_df.iloc[:n_subset].reset_index(drop=True)
+
+        # Automatically infer label length if not provided
+        # Automatically infer label length if not provided
+        if label_length is None:
+            inferred_lengths = self.labels_df["label"].str.len().unique()
+            if len(inferred_lengths) != 1:
+                raise ValueError(
+                    f"Dataset contains multiple label lengths after reading as strings: {sorted(inferred_lengths)}. "
+                    "Check whether labels were saved correctly in the CSV."
+                )
+            self.label_length = int(inferred_lengths[0])
+        else:
+            self.label_length = label_length
 
         # Validate rows
         self.samples = []
@@ -139,7 +164,8 @@ def create_dataloaders(
     num_workers=0,
     pin_memory=False,
     drop_last=False,
-    charset="012346789",
+    charset="0123456789",
+    label_length=None,
     subset_fraction=1.0,
     return_filenames=False,
 ):
@@ -147,12 +173,13 @@ def create_dataloaders(
     total_ratio = train_ratio + val_ratio + test_ratio
     if not math.isclose(total_ratio, 1.0, rel_tol=1e-6):
         raise ValueError("train_ratio + val_ratio + test_ratio must equal 1.0")
-    #Load full dataset
+
+    # Load full dataset
     dataset = CaptchaDataset(
         data_dir=data_dir,
         csv_name=csv_name,
         charset=charset,
-        label_length=5,
+        label_length=label_length,
         return_filenames=return_filenames,
         subset_fraction=subset_fraction,
     )
@@ -172,6 +199,7 @@ def create_dataloaders(
         [train_size, val_size, test_size],
         generator=generator
     )
+
     # Create individual DataLoaders
     train_loader = DataLoader(
         train_dataset,
@@ -200,4 +228,11 @@ def create_dataloaders(
         drop_last=False
     )
 
-    return train_loader, val_loader, test_loader, dataset.char_to_idx, dataset.idx_to_char
+    return (
+    train_loader,
+    val_loader,
+    test_loader,
+    dataset.char_to_idx,
+    dataset.idx_to_char,
+    dataset.label_length,
+)

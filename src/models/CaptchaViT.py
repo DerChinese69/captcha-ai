@@ -66,12 +66,12 @@ class SmallCaptchaViT(nn.Module):
         depth=4,
         num_heads=4,
         num_classes=10,
-        seq_len=5,
+        label_length=5,
         dropout=0.1
     ):
         super().__init__()
 
-        self.seq_len = seq_len
+        self.label_length = label_length
         self.num_classes = num_classes
 
         # Patch embedding
@@ -90,7 +90,7 @@ class SmallCaptchaViT(nn.Module):
         self.norm = nn.LayerNorm(embed_dim)
 
         # Head
-        self.head = nn.Linear(embed_dim, seq_len * num_classes)
+        self.head = nn.Linear(embed_dim, label_length * num_classes)
 
     def forward(self, x):
         # [B, 1, 64, 192]
@@ -104,6 +104,6 @@ class SmallCaptchaViT(nn.Module):
         x = x.mean(dim=1)                      # [B, 128]
 
         x = self.head(x)                       # [B, 255]
-        x = x.view(-1, self.seq_len, self.num_classes)  # [B, 5, 51]
+        x = x.view(-1, self.label_length, self.num_classes)  # [B, 5, 51]
 
         return x
