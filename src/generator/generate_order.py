@@ -13,7 +13,8 @@ from datetime import datetime
 SEED = 42
 random.seed(SEED)
 
-CLASSES = [str(i) for i in range(10)] #0 to 9
+#CLASSES = [str(i) for i in range(10)] #0 to 9
+CLASSES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #A to Z
 LENGTH = 5
 
 TARGET_PER_CLASS_PER_POSITION = 10000

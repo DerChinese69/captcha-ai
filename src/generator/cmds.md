@@ -11,3 +11,5 @@ php src/generator/render_captchas.php data/orders/order_000X 5Char_100000_CapGen
 Replace:
 	•	order_000X → latest folder from above
 	•	second argument → your dataset name
+
+Current phrase: php src/generator/render_captchas.php data/orders/order_0006 5Char_Alphabet_CapGen 
