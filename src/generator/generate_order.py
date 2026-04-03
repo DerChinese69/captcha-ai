@@ -1,3 +1,4 @@
+import argparse
 import os
 import json
 import re
@@ -10,14 +11,59 @@ from datetime import datetime
 # CONFIG
 # =========================
 
+
+def positive_int(value):
+    parsed_value = int(value)
+    if parsed_value <= 0:
+        raise argparse.ArgumentTypeError("Value must be a positive integer.")
+    return parsed_value
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Generate a balanced captcha order. "
+            "You must explicitly provide classes, label length, "
+            "and the target count per class per position."
+        )
+    )
+    parser.add_argument(
+        "--classes",
+        required=True,
+        help=(
+            "Classes to use for captcha generation. "
+            'Example: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" or "0123456789".'
+        ),
+    )
+    parser.add_argument(
+        "--length",
+        type=positive_int,
+        required=True,
+        help="Number of characters per captcha label.",
+    )
+    parser.add_argument(
+        "--target-per-class-per-position",
+        dest="target_per_class_per_position",
+        type=positive_int,
+        required=True,
+        help="Target number of samples for each class at each position.",
+    )
+    args = parser.parse_args()
+
+    if not args.classes:
+        parser.error("--classes must not be empty.")
+
+    return args
+
 SEED = 42
+ARGS = parse_args()
 random.seed(SEED)
 
 #CLASSES = [str(i) for i in range(10)] #0 to 9
-CLASSES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #A to Z
-LENGTH = 5
+CLASSES = ARGS.classes
+LENGTH = ARGS.length
 
-TARGET_PER_CLASS_PER_POSITION = 10000
+TARGET_PER_CLASS_PER_POSITION = ARGS.target_per_class_per_position
 TOTAL_SAMPLES = len(CLASSES) * TARGET_PER_CLASS_PER_POSITION
 
 IMAGE_FORMAT = "png"

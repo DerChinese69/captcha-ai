@@ -51,6 +51,14 @@ python check_setup.py
 
 All packages should return `[OK]`.
 
+Run the smoke test after setup:
+
+```bash
+python smoke_test.py
+```
+
+The smoke test is a short end-to-end verification for a new machine. It checks imports, device selection, dataloader creation, and a forward pass through the CNN and ViT models. If no processed dataset exists yet under `data/processed/`, it will skip the data-dependent steps and still confirm that the environment is otherwise ready.
+
 ---
 
 ## Project Structure
@@ -90,6 +98,19 @@ Optional augmentations:
 - noise injection  
 - geometric distortions  
 - compression artifacts  
+
+### Generator Usage
+
+To create a new balanced order for captcha rendering, run:
+
+```bash
+python3 src/generator/generate_order.py \
+  --classes "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+  --length 5 \
+  --target-per-class-per-position 1000
+```
+
+`--classes` is the exact character set to sample from, `--length` is the number of characters in each captcha label, and `--target-per-class-per-position` is the target count for each class at each character position.
 
 ---
 

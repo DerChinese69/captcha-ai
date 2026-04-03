@@ -8,6 +8,8 @@ __pycache__/
 # Virtual environment
 .venv/
 
+#Claude
+.claude/
 
 # MacOS system files
 .DS_Store
@@ -26,6 +28,7 @@ experiments/*
 vendor/
 reports/
 notebooks/development/
+
 # model weights
 *.pt
 *.pth
@@ -33,4 +36,3 @@ notebooks/development/
 
 #other
 generation_log.txt
-smoke_test.py
