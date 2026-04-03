@@ -48,7 +48,7 @@ def unpack_batch(batch):
 
     return images, labels, filenames
 
-def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classes):
+def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classes, verbose=True):
     import time
     start_time = time.time()
 
@@ -62,7 +62,8 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
     total_batches = len(loader)
     current_lr = optimizer.param_groups[0]["lr"]
 
-    print(f"Training with LR = {current_lr:.6f}")
+    if verbose:
+        print(f"Training with LR = {current_lr:.6f}")
 
     for batch_idx, batch in enumerate(loader):
         images, labels, _ = unpack_batch(batch)
@@ -70,7 +71,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
         labels = labels.to(device)
 
         optimizer.zero_grad()
-        
+
         outputs = model(images)
         loss = criterion(outputs.view(-1, num_char_classes), labels.view(-1))
 
@@ -84,7 +85,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device, num_char_classe
         running_seq_acc += seq_acc
         num_batches += 1
 
-        if batch_idx % 100 == 0:
+        if verbose and batch_idx % 100 == 0:
             elapsed = time.time() - start_time
             print(
                 f"[{batch_idx}/{total_batches}] "
