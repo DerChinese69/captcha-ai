@@ -16,8 +16,8 @@ How to configure:
     - Any key in an experiment dict overrides the corresponding default.
 
 Available datasets (data/processed/):
-    5Char_100k_Num_grayscale            charset="0123456789"           (100k samples)
-    5Char_260k_Alphabet_grayscale       charset="ABCDEFGHIJKLMNOPQRSTUVWXYZ"   (260k samples)
+    5Char_100k_Num_grayscale            charset="0123456789"                           (100k samples)
+    5Char_260k_Alp_grayscale            charset="ABCDEFGHIJKLMNOPQRSTUVWXYZ"           (260k samples)
     5Char_360k_AlpNum_grayscale         charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" (360k samples)
 """
 
@@ -46,8 +46,8 @@ EXPERIMENTS_DIR = REPO_ROOT / "experiments"
 # ---------------------------------------------------------------------------
 DEFAULTS = {
     # Dataset
-    "data_dir":        "data/processed/5Char_360k_AlpNum_grayscale",
-    "charset":         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "data_dir":        "data/processed/5Char_260k_Alp_grayscale",
+    "charset":         "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     "subset_fraction": 1.0,
 
     # Data splits
@@ -57,8 +57,8 @@ DEFAULTS = {
     "random_seed":  69,
 
     # DataLoader
-    "num_workers": 0,
-    "pin_memory":  False,
+    "num_workers": 2,
+    "pin_memory":  True,
     "drop_last":   False,
 
     # Optimiser / regularisation
@@ -92,33 +92,19 @@ DEFAULTS = {
 #   num_epochs
 # ---------------------------------------------------------------------------
 EXPERIMENTS = [
-
-    # =========================================================
-    # FINAL TRAINING CANDIDATES (leave commented for later)
-    # =========================================================
     {
-        "run_name":      "cnn_baseline_no_tune_correction",
-        "model_name":    "CNN",
-         "learning_rate": 3e-4,   # replace with best CNN setting
-         "batch_size":    64,     # replace if another batch wins
-         "num_epochs":    40,
-         "dropout":       0.3,    # replace with best CNN setting
-         "weight_decay":  1e-5,   # replace with best CNN setting
-         "use_scheduler": True,
-         "scheduler_step_size": 5,
-         "scheduler_gamma": 0.5,
-         "val_loss_stop_threshold": 0.15,
-     },
-     {
-    "run_name": "vit_last_recovery",
-    "model_name": "ViT",
+    "run_name":      "vit_alphabet_final",
+    "model_name":    "ViT",
+
+    "data_dir":      "data/processed/5Char_260k_Alp_grayscale",
+    "charset":       "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 
     "learning_rate": 1e-4,
-    "batch_size": 16,
-    "num_epochs": 30,
+    "batch_size":    16,
+    "num_epochs":    30,
 
-    "weight_decay": 1e-4,
-    "dropout": 0.1,
+    "weight_decay":  1e-4,
+    "dropout":       0.1,
 
     "use_scheduler": True,
     "scheduler_step_size": 5,
@@ -126,11 +112,77 @@ EXPERIMENTS = [
 
     "val_loss_stop_threshold": 0.15,
 
-    "img_size": (64, 192),
-    "patch_size": (8, 8),
-    "embed_dim": 192,
-    "depth": 6,
-    "num_heads": 6,
+    "img_size":      (64, 192),
+    "patch_size":    (8, 8),
+    "embed_dim":     192,
+    "depth":         6,
+    "num_heads":     6,
+},
+{
+    "run_name":      "vit_numeric_final",
+    "model_name":    "ViT",
+
+    "data_dir":      "data/processed/5Char_100k_Num_grayscale",
+    "charset":       "0123456789",
+
+    "learning_rate": 1e-4,
+    "batch_size":    20,
+    "num_epochs":    25,
+
+    "weight_decay":  1e-4,
+    "dropout":       0.0,
+
+    "use_scheduler": True,
+    "scheduler_step_size": 5,
+    "scheduler_gamma": 0.5,
+
+    "val_loss_stop_threshold": 0.15,
+
+    "img_size":      (64, 192),
+    "patch_size":    (8, 8),
+    "embed_dim":     128,
+    "depth":         4,
+    "num_heads":     4,
+},
+{
+    "run_name":      "cnn_alphabet_final",
+    "model_name":    "CNN",
+
+    "data_dir":      "data/processed/5Char_260k_Alp_grayscale",
+    "charset":       "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+
+    "learning_rate": 3e-4,
+    "batch_size":    64,
+    "num_epochs":    30,
+
+    "weight_decay":  1e-5,
+    "dropout":       0.1,
+
+    "use_scheduler": True,
+    "scheduler_step_size": 5,
+    "scheduler_gamma": 0.5,
+
+    "val_loss_stop_threshold": 0.10,
+},
+{
+    "run_name":      "cnn_numeric_final",
+    "model_name":    "CNN",
+
+    "data_dir":      "data/processed/5Char_100k_Num_grayscale",
+    "charset":       "0123456789",
+
+    "learning_rate": 3e-4,
+    "batch_size":    64,
+    "num_epochs":    25,
+
+    "weight_decay":  0.0,
+    "dropout":       0.0,
+
+    "use_scheduler": True,
+    "scheduler_step_size": 5,
+    "scheduler_gamma": 0.5,
+
+    "val_loss_stop_threshold": 0.10,
 }
 ]
 

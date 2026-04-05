@@ -55,8 +55,8 @@ EVALUATION_DIR = REPO_ROOT / "evaluation"
 DEFAULTS = {
     # DataLoader settings (can be larger than training batch_size)
     "batch_size":  64,
-    "num_workers": 0,
-    "pin_memory":  False,
+    "num_workers": 2,
+    "pin_memory":  True,
 
     # Output root (relative to repo root)
     "output_root": "evaluation",
@@ -88,7 +88,7 @@ DEFAULTS = {
 # ---------------------------------------------------------------------------
 EVALUATIONS = [
     {
-        "experiment_dir": "experiments/cnn_baseline_no_tune_wrong_charset",
+        "experiment_dir": "experiments/cnn_baseline_no_tune_correction",
         # Examples of optional overrides — uncomment to use:
         # "data_dir":   "data/processed/5Char_360k_AlpNum_grayscale",
         # "charset":    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -98,6 +98,18 @@ EVALUATIONS = [
     },
     # Add more runs below, e.g.:
     # {"experiment_dir": "experiments/vit_01_baseline"},
+    {
+        "experiment_dir": "experiments/vit_alphabet_final",
+    },
+    {
+        "experiment_dir": "experiments/vit_numeric_final",
+    },
+    {
+        "experiment_dir": "experiments/cnn_alphabet_final",
+    },
+    {
+        "experiment_dir": "experiments/cnn_numeric_final",
+    }
 ]
 
 # ===========================================================================
