@@ -19,10 +19,13 @@ data/orders/*
 data/raw/*
 data/processed/*
 experiments/*
+Old_experiments/*
+evaluation/*
 !data/orders/.gitkeep
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !experiments/.gitkeep
+!evaluation/.gitkeep
 
 #Data folders: Completely Local, not shared across machines
 vendor/

@@ -2,7 +2,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-def plot_training_curves(history, num_epochs, label_length, save_dir=None):
+def plot_training_curves(history, num_epochs, label_length, save_dir=None, show=True):
     """
     Plot loss, character accuracy, sequence accuracy, and per-position accuracy curves.
 
@@ -23,6 +23,7 @@ def plot_training_curves(history, num_epochs, label_length, save_dir=None):
         ylabel="Loss",
         title="Training and Validation Loss",
         save_path=Path(save_dir) / "loss_curves.png" if save_dir else None,
+        show=show,
     )
 
     _plot(
@@ -34,6 +35,7 @@ def plot_training_curves(history, num_epochs, label_length, save_dir=None):
         ylabel="Accuracy",
         title="Training and Validation Character Accuracy",
         save_path=Path(save_dir) / "char_acc_curves.png" if save_dir else None,
+        show=show,
     )
 
     _plot(
@@ -45,6 +47,7 @@ def plot_training_curves(history, num_epochs, label_length, save_dir=None):
         ylabel="Accuracy",
         title="Training and Validation Sequence Accuracy",
         save_path=Path(save_dir) / "seq_acc_curves.png" if save_dir else None,
+        show=show,
     )
 
     _plot(
@@ -56,10 +59,11 @@ def plot_training_curves(history, num_epochs, label_length, save_dir=None):
         ylabel="Accuracy",
         title="Validation Per-Position Accuracy",
         save_path=Path(save_dir) / "val_pos_acc_curves.png" if save_dir else None,
+        show=show,
     )
 
 
-def _plot(epochs, curves, ylabel, title, save_path=None):
+def _plot(epochs, curves, ylabel, title, save_path=None, show=True):
     plt.figure(figsize=(8, 5))
     for values, label in curves:
         plt.plot(epochs, values, label=label)
@@ -70,4 +74,6 @@ def _plot(epochs, curves, ylabel, title, save_path=None):
     plt.grid(True)
     if save_path is not None:
         plt.savefig(save_path, bbox_inches="tight")
-    plt.show()
+    if show:
+        plt.show()
+    plt.close()

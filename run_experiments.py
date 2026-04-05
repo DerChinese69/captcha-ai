@@ -46,8 +46,8 @@ EXPERIMENTS_DIR = REPO_ROOT / "experiments"
 # ---------------------------------------------------------------------------
 DEFAULTS = {
     # Dataset
-    "data_dir":        "data/processed/5Char_26k_Alphabet_grayscale",
-    "charset":         "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "data_dir":        "data/processed/5Char_360k_AlpNum_grayscale",
+    "charset":         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     "subset_fraction": 1.0,
 
     # Data splits
@@ -61,20 +61,19 @@ DEFAULTS = {
     "pin_memory":  False,
     "drop_last":   False,
 
-    # Optimiser
+    # Optimiser / regularisation
     "weight_decay": 0.0,
     "dropout":      0.0,
 
-    # Scheduler (disabled by default)
+    # Scheduler
     "use_scheduler":       False,
-    "scheduler_step_size": 5,
+    "scheduler_step_size": 4,
     "scheduler_gamma":     0.5,
 
-    # Early stopping — stop if val_loss > best_val_loss * (1 + threshold)
-    # Set to None to disable.
-    "val_loss_stop_threshold": 0.10,
+    # Early stopping
+    "val_loss_stop_threshold": 0.15,
 
-    # ViT-specific (only used when model_name == "ViT")
+    # ViT-specific
     "img_size":    (64, 192),
     "patch_size":  (8, 16),
     "embed_dim":   128,
@@ -93,28 +92,46 @@ DEFAULTS = {
 #   num_epochs
 # ---------------------------------------------------------------------------
 EXPERIMENTS = [
+
+    # =========================================================
+    # FINAL TRAINING CANDIDATES (leave commented for later)
+    # =========================================================
     {
-        "run_name":     "cnn_alphabet_baseline",
-        "model_name":   "CNN",
-        "learning_rate": 3e-4,
-        "batch_size":   50,
-        "num_epochs":   30,
-    },
-    # {
-    #     "run_name":     "vit_alphabet_baseline",
-    #     "model_name":   "ViT",
-    #     "learning_rate": 3e-4,
-    #     "batch_size":   20,
-    #     "num_epochs":   30,
-    # },
-    # {
-    #     "run_name":     "cnn_lr_sweep_1e4",
-    #     "model_name":   "CNN",
-    #     "learning_rate": 1e-4,
-    #     "batch_size":   50,
-    #     "num_epochs":   30,
-    #     "val_loss_stop_threshold": 0.05,   # tighter stop for sweeps
-    # },
+        "run_name":      "cnn_baseline_no_tune_correction",
+        "model_name":    "CNN",
+         "learning_rate": 3e-4,   # replace with best CNN setting
+         "batch_size":    64,     # replace if another batch wins
+         "num_epochs":    40,
+         "dropout":       0.3,    # replace with best CNN setting
+         "weight_decay":  1e-5,   # replace with best CNN setting
+         "use_scheduler": True,
+         "scheduler_step_size": 5,
+         "scheduler_gamma": 0.5,
+         "val_loss_stop_threshold": 0.15,
+     },
+     {
+    "run_name": "vit_last_recovery",
+    "model_name": "ViT",
+
+    "learning_rate": 1e-4,
+    "batch_size": 16,
+    "num_epochs": 30,
+
+    "weight_decay": 1e-4,
+    "dropout": 0.1,
+
+    "use_scheduler": True,
+    "scheduler_step_size": 5,
+    "scheduler_gamma": 0.5,
+
+    "val_loss_stop_threshold": 0.15,
+
+    "img_size": (64, 192),
+    "patch_size": (8, 8),
+    "embed_dim": 192,
+    "depth": 6,
+    "num_heads": 6,
+}
 ]
 
 # ---------------------------------------------------------------------------
