@@ -67,8 +67,9 @@ DEFAULTS = {
     "num_saliency_samples":   5,
 
     # Latent-space visualization
-    "latent_max_chars": 5000,   # character-slot embeddings to collect for PCA/t-SNE
-    "latent_run_tsne":  True,   # also generate t-SNE plot (subsampled to 2000 points)
+    "latent_max_chars":  8000,          # total embeddings to collect (should be >= max tsne size)
+    "latent_run_tsne":   True,          # generate t-SNE plots
+    "latent_tsne_sizes": [2000, 5000, 8000],  # one plot per size
 
     # Device: None = auto-detect (CUDA > MPS > CPU)
     # Set to "cpu", "cuda", or "mps" to force a specific device.
@@ -102,18 +103,6 @@ EVALUATIONS = [
     },
     # Add more runs below, e.g.:
     # {"experiment_dir": "experiments/vit_01_baseline"},
-    {
-        "experiment_dir": "experiments/vit_alphabet_final",
-    },
-    {
-        "experiment_dir": "experiments/vit_numeric_final",
-    },
-    {
-        "experiment_dir": "experiments/cnn_alphabet_final",
-    },
-    {
-        "experiment_dir": "experiments/cnn_numeric_final",
-    }
 ]
 
 # ===========================================================================
@@ -220,8 +209,9 @@ def _run_eval_suite(model, loader, device, idx_to_char, out_dir, split, cfg):
     try:
         eval_utils.generate_latent_space_plots(
             model, loader, device, idx_to_char, out_dir, split,
-            max_chars=cfg.get("latent_max_chars", 5000),
-            run_tsne=cfg.get("latent_run_tsne",   True),
+            max_chars=cfg.get("latent_max_chars",  8000),
+            run_tsne=cfg.get("latent_run_tsne",    True),
+            tsne_sizes=cfg.get("latent_tsne_sizes", [2000, 5000, 8000]),
         )
     except Exception as exc:
         print(f"    [skip] latent space: {exc}")

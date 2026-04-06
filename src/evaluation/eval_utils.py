@@ -1154,7 +1154,7 @@ def _plot_2d_scatter(coords, char_labels, save_path, title, xlabel, ylabel):
 
 def generate_latent_space_plots(
     model, dataloader, device, idx_to_char, out_dir, split,
-    max_chars=5000, run_tsne=True,
+    max_chars=8000, run_tsne=True, tsne_sizes=(2000, 5000, 8000),
 ):
     """
     Collect character embeddings and save PCA (always) and t-SNE (optional) plots.
@@ -1162,7 +1162,13 @@ def generate_latent_space_plots(
     Outputs (in out_dir)
     --------------------
     latent_space_characters_pca_{split}.png
-    latent_space_characters_tsne_{split}.png   (if run_tsne=True)
+    latent_space_characters_tsne_{size}_{split}.png   one per entry in tsne_sizes
+
+    max_chars controls how many embeddings are collected; it should be at
+    least as large as the biggest value in tsne_sizes so that each plot
+    draws from a full pool of that size rather than being forced to reuse
+    points.  If the loader has fewer samples than a requested size, all
+    available embeddings are used and the filename reflects the actual count.
 
     The function calls model.extract_features() which must return [B, L, D].
     For CaptchaCNN this yields true per-slot spatial features (D=256).
@@ -1185,11 +1191,11 @@ def generate_latent_space_plots(
     is_vit = model_name == "SmallCaptchaViT"
     embed_note = " (sequence-level, broadcast to all slots)" if is_vit else ""
 
-    # --- PCA ---
-    pca   = PCA(n_components=2, random_state=42)
+    # --- PCA (uses all collected embeddings) ---
+    pca        = PCA(n_components=2, random_state=42)
     coords_pca = pca.fit_transform(embeddings)
-    var   = pca.explained_variance_ratio_
-    title_pca = (
+    var        = pca.explained_variance_ratio_
+    title_pca  = (
         f"{model_name} — Latent Space (PCA)  [{split}]{embed_note}\n"
         f"n={N:,}  D={D}  classes={len(set(char_labels))}"
     )
@@ -1201,30 +1207,31 @@ def generate_latent_space_plots(
     )
     print(f"    [saved] {save_pca.name}")
 
-    # --- t-SNE (subsampled for speed) ---
+    # --- t-SNE — one plot per requested size ---
     if run_tsne:
         from sklearn.manifold import TSNE
 
-        max_tsne = 2000
-        if N > max_tsne:
-            rng  = np.random.default_rng(42)
-            idx  = rng.choice(N, max_tsne, replace=False)
-            emb_sub  = embeddings[idx]
-            lbl_sub  = [char_labels[i] for i in idx]
-        else:
-            emb_sub, lbl_sub = embeddings, char_labels
+        rng = np.random.default_rng(42)
+        for size in tsne_sizes:
+            if N > size:
+                idx     = rng.choice(N, size, replace=False)
+                emb_sub = embeddings[idx]
+                lbl_sub = [char_labels[i] for i in idx]
+            else:
+                emb_sub, lbl_sub = embeddings, char_labels
 
-        n_sub = len(emb_sub)
-        tsne  = TSNE(n_components=2, random_state=42,
-                     perplexity=min(30, n_sub - 1), n_iter=500)
-        coords_tsne = tsne.fit_transform(emb_sub)
-        title_tsne  = (
-            f"{model_name} — Latent Space (t-SNE)  [{split}]{embed_note}\n"
-            f"n={n_sub:,} (subsampled)  D={D}  classes={len(set(lbl_sub))}"
-        )
-        save_tsne = out_dir / f"latent_space_characters_tsne_{split}.png"
-        _plot_2d_scatter(
-            coords_tsne, lbl_sub, save_tsne, title_tsne,
-            xlabel="t-SNE 1", ylabel="t-SNE 2",
-        )
-        print(f"    [saved] {save_tsne.name}")
+            n_sub = len(emb_sub)
+            tsne  = TSNE(n_components=2, random_state=42,
+                         perplexity=min(30, n_sub - 1), n_iter=500)
+            coords_tsne = tsne.fit_transform(emb_sub)
+            label_suffix = "(subsampled)" if N > size else "(all)"
+            title_tsne   = (
+                f"{model_name} — Latent Space (t-SNE n={n_sub:,})  [{split}]{embed_note}\n"
+                f"n={n_sub:,} {label_suffix}  D={D}  classes={len(set(lbl_sub))}"
+            )
+            save_tsne = out_dir / f"latent_space_characters_tsne_{size}_{split}.png"
+            _plot_2d_scatter(
+                coords_tsne, lbl_sub, save_tsne, title_tsne,
+                xlabel="t-SNE 1", ylabel="t-SNE 2",
+            )
+            print(f"    [saved] {save_tsne.name}")
