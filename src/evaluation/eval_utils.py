@@ -1052,3 +1052,179 @@ def generate_hard_examples(collected, out_dir, split, num=5):
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"    [saved] {save_path.name}  ({n} samples)")
+
+
+# ---------------------------------------------------------------------------
+# I. Latent-space visualization
+# ---------------------------------------------------------------------------
+
+def collect_character_embeddings(model, dataloader, device, idx_to_char, max_chars=5000):
+    """
+    Extract per-character-slot embeddings from model.extract_features().
+
+    Iterates batches until max_chars individual character embeddings have
+    been collected (one per slot per image), then stops.
+
+    Returns
+    -------
+    embeddings  : np.ndarray  [N, D]
+    char_labels : list[str]   length N  — true character at each slot
+    positions   : list[int]   length N  — slot index (0..label_length-1)
+
+    Raises
+    ------
+    AttributeError  if the model does not implement extract_features().
+    """
+    from src.training.engine import unpack_batch
+
+    if not hasattr(model, "extract_features"):
+        raise AttributeError(
+            f"{type(model).__name__} does not implement extract_features(). "
+            "Add the method or skip latent-space visualization for this model."
+        )
+
+    model.eval()
+    all_embeddings = []
+    all_labels     = []
+    all_positions  = []
+    total_chars    = 0
+
+    with torch.no_grad():
+        for batch in dataloader:
+            if total_chars >= max_chars:
+                break
+            images, labels, _ = unpack_batch(batch)
+            images = images.to(device)
+            labels = labels.to(device)
+
+            feats = model.extract_features(images)          # [B, L, D]
+            feats_np  = feats.contiguous().cpu().numpy()    # [B, L, D]
+            labels_np = labels.cpu().numpy()                # [B, L]
+
+            B, L, D = feats_np.shape
+            for b in range(B):
+                for pos in range(L):
+                    if total_chars >= max_chars:
+                        break
+                    all_embeddings.append(feats_np[b, pos])
+                    all_labels.append(idx_to_char[int(labels_np[b, pos])])
+                    all_positions.append(pos)
+                    total_chars += 1
+
+    return np.array(all_embeddings), all_labels, all_positions
+
+
+def _plot_2d_scatter(coords, char_labels, save_path, title, xlabel, ylabel):
+    """Scatter plot colored by character class with a compact legend."""
+    unique_chars = sorted(set(char_labels))
+    n_classes    = len(unique_chars)
+
+    # Perceptually distinct colors for any class count
+    color_fn      = plt.cm.turbo
+    char_to_color = {c: color_fn(i / max(n_classes - 1, 1))
+                     for i, c in enumerate(unique_chars)}
+    point_colors  = [char_to_color[c] for c in char_labels]
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.scatter(coords[:, 0], coords[:, 1],
+               c=point_colors, s=6, alpha=0.55, linewidths=0)
+
+    # Legend: always include but compact for large alphabets
+    handles = [
+        plt.Line2D([0], [0], marker="o", color="w",
+                   markerfacecolor=char_to_color[c], markersize=7, label=c)
+        for c in unique_chars
+    ]
+    ncol = 2 if n_classes > 13 else 1
+    ax.legend(handles=handles, title="Character", bbox_to_anchor=(1.01, 1),
+              loc="upper left", fontsize=7, title_fontsize=8,
+              ncol=ncol, framealpha=0.8)
+
+    ax.set_title(title, fontsize=10, pad=8)
+    ax.set_xlabel(xlabel, fontsize=9)
+    ax.set_ylabel(ylabel, fontsize=9)
+    ax.tick_params(labelsize=8)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=130, bbox_inches="tight")
+    plt.close(fig)
+
+
+def generate_latent_space_plots(
+    model, dataloader, device, idx_to_char, out_dir, split,
+    max_chars=5000, run_tsne=True,
+):
+    """
+    Collect character embeddings and save PCA (always) and t-SNE (optional) plots.
+
+    Outputs (in out_dir)
+    --------------------
+    latent_space_characters_pca_{split}.png
+    latent_space_characters_tsne_{split}.png   (if run_tsne=True)
+
+    The function calls model.extract_features() which must return [B, L, D].
+    For CaptchaCNN this yields true per-slot spatial features (D=256).
+    For SmallCaptchaViT this yields the global sequence embedding broadcast
+    across slots (D=embed_dim) — noted in the plot subtitle.
+    """
+    from sklearn.decomposition import PCA
+
+    out_dir    = Path(out_dir)
+    model_name = type(model).__name__
+
+    print(f"    collecting embeddings (max {max_chars:,} chars) ...")
+    embeddings, char_labels, positions = collect_character_embeddings(
+        model, dataloader, device, idx_to_char, max_chars=max_chars,
+    )
+
+    N, D = embeddings.shape
+    print(f"    {N} embeddings  D={D}  classes={len(set(char_labels))}")
+
+    is_vit = model_name == "SmallCaptchaViT"
+    embed_note = " (sequence-level, broadcast to all slots)" if is_vit else ""
+
+    # --- PCA ---
+    pca   = PCA(n_components=2, random_state=42)
+    coords_pca = pca.fit_transform(embeddings)
+    var   = pca.explained_variance_ratio_
+    title_pca = (
+        f"{model_name} — Latent Space (PCA)  [{split}]{embed_note}\n"
+        f"n={N:,}  D={D}  classes={len(set(char_labels))}"
+    )
+    save_pca = out_dir / f"latent_space_characters_pca_{split}.png"
+    _plot_2d_scatter(
+        coords_pca, char_labels, save_pca, title_pca,
+        xlabel=f"PC1 ({var[0]*100:.1f}%)",
+        ylabel=f"PC2 ({var[1]*100:.1f}%)",
+    )
+    print(f"    [saved] {save_pca.name}")
+
+    # --- t-SNE (subsampled for speed) ---
+    if run_tsne:
+        from sklearn.manifold import TSNE
+
+        max_tsne = 2000
+        if N > max_tsne:
+            rng  = np.random.default_rng(42)
+            idx  = rng.choice(N, max_tsne, replace=False)
+            emb_sub  = embeddings[idx]
+            lbl_sub  = [char_labels[i] for i in idx]
+        else:
+            emb_sub, lbl_sub = embeddings, char_labels
+
+        n_sub = len(emb_sub)
+        tsne  = TSNE(n_components=2, random_state=42,
+                     perplexity=min(30, n_sub - 1), n_iter=500)
+        coords_tsne = tsne.fit_transform(emb_sub)
+        title_tsne  = (
+            f"{model_name} — Latent Space (t-SNE)  [{split}]{embed_note}\n"
+            f"n={n_sub:,} (subsampled)  D={D}  classes={len(set(lbl_sub))}"
+        )
+        save_tsne = out_dir / f"latent_space_characters_tsne_{split}.png"
+        _plot_2d_scatter(
+            coords_tsne, lbl_sub, save_tsne, title_tsne,
+            xlabel="t-SNE 1", ylabel="t-SNE 2",
+        )
+        print(f"    [saved] {save_tsne.name}")

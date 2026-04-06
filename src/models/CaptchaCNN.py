@@ -66,5 +66,16 @@ class CaptchaCNN(nn.Module):
         x = self.classifier(x)                              # [B, 50]
         x = x.view(-1, self.label_length, self.num_char_classes)
         return x                                             # [B, 5, 10]
+
+    def extract_features(self, x):
+        """Pre-classifier per-slot embeddings: [B, label_length, 256].
+
+        AdaptiveAvgPool2d((1, 5)) produces one 256-d feature vector per
+        character slot, so the CNN naturally provides true per-character
+        representations without any approximation.
+        """
+        x = self.features(x)        # [B, 256, 1, 5]
+        x = x.squeeze(2)            # [B, 256, 5]
+        return x.permute(0, 2, 1)  # [B, 5, 256]
     
     

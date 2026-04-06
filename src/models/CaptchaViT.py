@@ -107,3 +107,20 @@ class SmallCaptchaViT(nn.Module):
         x = x.view(-1, self.label_length, self.num_classes)  # [B, 5, 51]
 
         return x
+
+    def extract_features(self, x):
+        """Pre-head sequence embedding, broadcast to all character slots: [B, label_length, embed_dim].
+
+        SmallCaptchaViT encodes the whole image into a single vector via
+        global mean-pooling before the classifier head — there is no
+        per-character spatial split.  The same embed_dim-vector is broadcast
+        across all label_length slots so the output shape is consistent with
+        CaptchaCNN.extract_features().  Latent-space plots for the ViT
+        therefore reflect sequence-level rather than character-level structure.
+        """
+        x = self.patch_embed(x)                                      # [B, P, E]
+        x = x + self.pos_embed
+        x = self.blocks(x)
+        x = self.norm(x)
+        x = x.mean(dim=1)                                            # [B, E]
+        return x.unsqueeze(1).expand(-1, self.label_length, -1)      # [B, 5, E]

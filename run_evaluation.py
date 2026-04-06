@@ -66,6 +66,10 @@ DEFAULTS = {
     "num_incorrect_examples": 5,
     "num_saliency_samples":   5,
 
+    # Latent-space visualization
+    "latent_max_chars": 5000,   # character-slot embeddings to collect for PCA/t-SNE
+    "latent_run_tsne":  True,   # also generate t-SNE plot (subsampled to 2000 points)
+
     # Device: None = auto-detect (CUDA > MPS > CPU)
     # Set to "cpu", "cuda", or "mps" to force a specific device.
     "device": None,
@@ -211,6 +215,16 @@ def _run_eval_suite(model, loader, device, idx_to_char, out_dir, split, cfg):
         collected, out_dir, split,
         num=cfg.get("num_hard_examples", 5),
     )
+
+    print(f"  [{split}] latent space visualization ...")
+    try:
+        eval_utils.generate_latent_space_plots(
+            model, loader, device, idx_to_char, out_dir, split,
+            max_chars=cfg.get("latent_max_chars", 5000),
+            run_tsne=cfg.get("latent_run_tsne",   True),
+        )
+    except Exception as exc:
+        print(f"    [skip] latent space: {exc}")
 
     return metrics
 
