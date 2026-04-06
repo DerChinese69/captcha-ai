@@ -42,7 +42,12 @@ def auto_device():
 # ---------------------------------------------------------------------------
 
 def build_model(model_name, config):
-    """Instantiate CNN or ViT from a config dict loaded from config.json."""
+    """Instantiate CNN or ViT from a config dict loaded from config.json.
+
+    All architecture parameters are taken from config so the reconstructed
+    model exactly matches the one that was trained, regardless of any
+    subsequent changes to source-code defaults.
+    """
     from src.models.CaptchaCNN import CaptchaCNN
     from src.models.CaptchaViT import SmallCaptchaViT
 
@@ -56,12 +61,69 @@ def build_model(model_name, config):
             dropout=config.get("dropout", 0.3),
         )
     if model_name == "ViT":
+        # Read every architecture dimension from config so checkpoints load
+        # correctly even if source-code defaults have changed since training.
+        img_size   = config.get("img_size",   (64, 192))
+        patch_size = config.get("patch_size", (8, 16))
+        # JSON round-trips lists, not tuples; SmallCaptchaViT expects tuples.
+        if isinstance(img_size,   list): img_size   = tuple(img_size)
+        if isinstance(patch_size, list): patch_size = tuple(patch_size)
         return SmallCaptchaViT(
             num_classes=num_char_classes,
             label_length=label_length,
-            dropout=config.get("dropout", 0.1),
+            img_size=img_size,
+            patch_size=patch_size,
+            embed_dim=config.get("embed_dim", 128),
+            depth=config.get("depth",         4),
+            num_heads=config.get("num_heads",  4),
+            dropout=config.get("dropout",      0.1),
         )
     raise ValueError(f"Unknown model_name: {model_name!r}. Expected 'CNN' or 'ViT'.")
+
+
+def check_checkpoint_compatibility(config, checkpoint_path):
+    """
+    Load a checkpoint and verify its keys match the model built from config.
+
+    Prints a concise summary and raises RuntimeError on mismatch so the
+    caller can skip the run gracefully rather than seeing a wall of size errors.
+    """
+    import torch
+
+    model_name = config.get("model_name", "?")
+    print(f"  [compat] {model_name}  embed_dim={config.get('embed_dim','?')}"
+          f"  patch_size={config.get('patch_size','?')}"
+          f"  depth={config.get('depth','?')}  num_heads={config.get('num_heads','?')}"
+          f"  num_classes={config.get('num_char_classes','?')}"
+          f"  label_length={config.get('label_length','?')}")
+    print(f"  [compat] checkpoint: {checkpoint_path}")
+
+    model = build_model(model_name, config)
+    state_dict = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+
+    model_keys  = set(model.state_dict().keys())
+    ckpt_keys   = set(state_dict.keys())
+    missing     = model_keys - ckpt_keys
+    unexpected  = ckpt_keys  - model_keys
+
+    shape_errors = []
+    for k in model_keys & ckpt_keys:
+        ms = model.state_dict()[k].shape
+        cs = state_dict[k].shape
+        if ms != cs:
+            shape_errors.append(f"    {k}: model={tuple(ms)}  ckpt={tuple(cs)}")
+
+    if missing or unexpected or shape_errors:
+        lines = ["Checkpoint / config mismatch — cannot load safely:"]
+        if shape_errors:
+            lines += ["  Shape mismatches:"] + shape_errors
+        if missing:
+            lines.append(f"  Keys missing from checkpoint: {sorted(missing)}")
+        if unexpected:
+            lines.append(f"  Unexpected keys in checkpoint: {sorted(unexpected)}")
+        raise RuntimeError("\n".join(lines))
+
+    print(f"  [compat] OK — architecture matches checkpoint.")
 
 
 # ---------------------------------------------------------------------------

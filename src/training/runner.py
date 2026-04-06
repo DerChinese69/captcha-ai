@@ -1,4 +1,5 @@
 import json
+import platform
 import time
 from datetime import datetime
 from pathlib import Path
@@ -90,6 +91,16 @@ def run_one_experiment(cfg, experiments_dir, verbose=True, is_smoke=False):
     print(f"  data={cfg['data_dir']}")
     print(f"{'='*60}")
 
+    # --- Windows-safe DataLoader settings ---
+    num_workers = cfg["num_workers"]
+    pin_memory  = cfg["pin_memory"]
+    if platform.system() == "Windows" and num_workers > 0:
+        print(f"  [WARNING] Windows detected with num_workers={num_workers}."
+              f" Overriding to num_workers=0, pin_memory=False to avoid"
+              f" shared memory errors (error 1455).")
+        num_workers = 0
+        pin_memory  = False
+
     # --- Dataloaders ---
     train_loader, val_loader, _, char_to_idx, idx_to_char, label_length = create_dataloaders(
         data_dir=cfg["data_dir"],
@@ -99,8 +110,8 @@ def run_one_experiment(cfg, experiments_dir, verbose=True, is_smoke=False):
         val_ratio=cfg["val_ratio"],
         test_ratio=cfg["test_ratio"],
         random_seed=cfg["random_seed"],
-        num_workers=cfg["num_workers"],
-        pin_memory=cfg["pin_memory"],
+        num_workers=num_workers,
+        pin_memory=pin_memory,
         drop_last=cfg["drop_last"],
         subset_fraction=subset_fraction,
     )
@@ -151,6 +162,29 @@ def run_one_experiment(cfg, experiments_dir, verbose=True, is_smoke=False):
     history_path    = run_dir / "training_history.json"
     config_path     = run_dir / "config.json"
     metadata_path   = run_dir / "metadata.json"
+
+    # --- Save config.json BEFORE training so it persists even if training crashes ---
+    config_record = {
+        k: (list(v) if isinstance(v, tuple) else str(v) if isinstance(v, Path) else v)
+        for k, v in cfg.items()
+    }
+    config_record.update({
+        "model_name":           model_name,
+        "num_char_classes":     num_char_classes,
+        "label_length":         label_length,
+        "device":               str(device),
+        "is_smoke":             is_smoke,
+        "num_epochs_configured": num_epochs,
+        "subset_fraction_actual": subset_fraction,
+        "num_workers_actual":   num_workers,
+        "pin_memory_actual":    pin_memory,
+        "model_kwargs": {
+            k: (list(v) if isinstance(v, tuple) else v)
+            for k, v in model_kwargs.items()
+        },
+    })
+    with open(config_path, "w") as f:
+        json.dump(config_record, f, indent=4)
 
     # --- Training loop ---
     best_val_seq_acc = -1.0
@@ -237,22 +271,6 @@ def run_one_experiment(cfg, experiments_dir, verbose=True, is_smoke=False):
         save_dir=run_dir,
         show=False,
     )
-
-    # Config: everything that was used (Path values → str for JSON)
-    config_record = {
-        k: (str(v) if isinstance(v, Path) else v)
-        for k, v in cfg.items()
-    }
-    config_record.update({
-        "num_char_classes": num_char_classes,
-        "label_length": label_length,
-        "device": str(device),
-        "is_smoke": is_smoke,
-        "num_epochs_actual": num_epochs,
-        "subset_fraction_actual": subset_fraction,
-    })
-    with open(config_path, "w") as f:
-        json.dump(config_record, f, indent=4)
 
     # Metadata: compact run summary
     total_time = time.time() - start_time

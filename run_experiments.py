@@ -57,8 +57,8 @@ DEFAULTS = {
     "random_seed":  69,
 
     # DataLoader
-    "num_workers": 2,
-    "pin_memory":  True,
+    "num_workers": 0,
+    "pin_memory":  False,
     "drop_last":   False,
 
     # Optimiser / regularisation

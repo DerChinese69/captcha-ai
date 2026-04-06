@@ -55,8 +55,8 @@ EVALUATION_DIR = REPO_ROOT / "evaluation"
 DEFAULTS = {
     # DataLoader settings (can be larger than training batch_size)
     "batch_size":  64,
-    "num_workers": 2,
-    "pin_memory":  True,
+    "num_workers": 0,
+    "pin_memory":  False,
 
     # Output root (relative to repo root)
     "output_root": "evaluation",
@@ -243,7 +243,10 @@ def run_one_evaluation(eval_cfg):
 
     config_path = exp_dir / "config.json"
     if not config_path.exists():
-        raise FileNotFoundError(f"config.json not found in {exp_dir}")
+        raise FileNotFoundError(
+            f"Skipping {exp_dir.name}: config.json not found "
+            f"(experiment may have crashed before training started)."
+        )
 
     with open(config_path) as f:
         exp_config = json.load(f)
@@ -291,9 +294,10 @@ def run_one_evaluation(eval_cfg):
 
     # -- Model --
     model_name = exp_config["model_name"]
+    eval_utils.check_checkpoint_compatibility(exp_config, checkpoint)
     model = eval_utils.build_model(model_name, exp_config)
     state_dict = torch.load(checkpoint, map_location=device, weights_only=True)
-    model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict, strict=True)
     model.to(device)
     model.eval()
 

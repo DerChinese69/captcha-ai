@@ -91,11 +91,19 @@ def build_model(model_name, config):
         )
 
     if model_name == "ViT":
-        dropout = config.get("dropout", 0.1)
+        img_size   = config.get("img_size",   (64, 192))
+        patch_size = config.get("patch_size", (8, 16))
+        if isinstance(img_size,   list): img_size   = tuple(img_size)
+        if isinstance(patch_size, list): patch_size = tuple(patch_size)
         return SmallCaptchaViT(
             num_classes=num_char_classes,
             label_length=label_length,
-            dropout=dropout,
+            img_size=img_size,
+            patch_size=patch_size,
+            embed_dim=config.get("embed_dim", 128),
+            depth=config.get("depth",         4),
+            num_heads=config.get("num_heads",  4),
+            dropout=config.get("dropout",      0.1),
         )
 
     raise ValueError(
