@@ -57,7 +57,7 @@ class TransformerBlock(nn.Module):
 # -------------------------
 # Small CAPTCHA ViT (Phase A)
 # -------------------------
-class SmallCaptchaViT(nn.Module):
+class SmallCaptchaViTA(nn.Module):
     def __init__(
         self,
         img_size=(64, 192),
@@ -124,3 +124,86 @@ class SmallCaptchaViT(nn.Module):
         x = self.norm(x)
         x = x.mean(dim=1)                                            # [B, E]
         return x.unsqueeze(1).expand(-1, self.label_length, -1)      # [B, 5, E]
+
+
+# -------------------------
+# Small CAPTCHA ViT (Phase B)
+# -------------------------
+class SmallCaptchaViT(nn.Module):
+    """ViT CAPTCHA classifier using slot-aware pooling instead of global pooling.
+
+    After the transformer encoder the tokens are reshaped into a 2-D patch grid,
+    averaged over the height axis, and then linearly interpolated along the width
+    axis to produce one embedding per character slot.  The classifier head is
+    applied independently to each slot, yielding a true per-character prediction
+    without broadcasting a single pooled vector.
+    """
+
+    def __init__(
+        self,
+        img_size=(64, 192),
+        patch_size=(8, 16),
+        embed_dim=128,
+        depth=4,
+        num_heads=4,
+        num_classes=10,
+        label_length=5,
+        dropout=0.1
+    ):
+        super().__init__()
+
+        self.label_length = label_length
+        self.num_classes = num_classes
+        self.grid_h = img_size[0] // patch_size[0]   # 8
+        self.grid_w = img_size[1] // patch_size[1]   # 12
+
+        # Patch embedding
+        self.patch_embed = PatchEmbedding(img_size, patch_size, 1, embed_dim)
+        num_patches = self.patch_embed.num_patches
+
+        # Positional embedding
+        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim))
+
+        # Transformer encoder
+        self.blocks = nn.Sequential(*[
+            TransformerBlock(embed_dim, num_heads, 4.0, dropout)
+            for _ in range(depth)
+        ])
+
+        self.norm = nn.LayerNorm(embed_dim)
+
+        # Per-slot head
+        self.head = nn.Linear(embed_dim, num_classes)
+
+    def _slot_pool(self, x):
+        """Map encoder output [B, P, E] → slot embeddings [B, label_length, E]."""
+        B, _, E = x.shape
+        x = x.view(B, self.grid_h, self.grid_w, E)    # [B, 8, 12, E]
+        x = x.mean(dim=1)                              # [B, 12, E]
+        x = x.permute(0, 2, 1)                        # [B, E, 12]
+        x = torch.nn.functional.interpolate(
+            x, size=self.label_length, mode='linear', align_corners=False
+        )                                              # [B, E, label_length]
+        x = x.permute(0, 2, 1)                        # [B, label_length, E]
+        return x
+
+    def forward(self, x):
+        # [B, 1, 64, 192]
+        x = self.patch_embed(x)                        # [B, 96, 128]
+        x = x + self.pos_embed                         # add position
+
+        x = self.blocks(x)                             # [B, 96, 128]
+        x = self.norm(x)
+
+        x = self._slot_pool(x)                         # [B, label_length, E]
+        x = self.head(x)                               # [B, label_length, num_classes]
+
+        return x
+
+    def extract_features(self, x):
+        """True per-slot embeddings before head: [B, label_length, embed_dim]."""
+        x = self.patch_embed(x)
+        x = x + self.pos_embed
+        x = self.blocks(x)
+        x = self.norm(x)
+        return self._slot_pool(x)                      # [B, label_length, E]
