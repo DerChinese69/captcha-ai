@@ -63,8 +63,31 @@ def plot_training_curves(history, num_epochs, label_length, save_dir=None, show=
     )
 
     # --- Log-scale additions (additive — existing PNGs are unchanged) ---
+    plot_log_training_curves(history, save_dir=save_dir, show=show)
 
-    # Log loss: straightforward since loss > 0 always
+
+def plot_log_training_curves(history, save_dir=None, show=False):
+    """
+    Generate log-scale training-history plots and save them to save_dir.
+
+    Derives the epoch count from the length of the loss series so it can
+    be called independently of plot_training_curves() — useful for
+    backfilling old experiment folders that predate this feature.
+
+    Outputs (when save_dir is set):
+        log_loss_curves.png   — train/val loss on log y-axis
+        log_error_curves.png  — (1 − char_acc) and (1 − seq_acc) on log y-axis
+
+    Missing metrics are skipped gracefully; a missing loss series skips
+    log_loss_curves.png without raising.
+    """
+    # Derive epoch count from whichever loss series is present
+    n = len(history.get("train_loss") or history.get("val_loss") or [])
+    if n == 0:
+        return
+    epochs = range(1, n + 1)
+
+    # Log loss
     loss_curves = []
     for key, label in [("train_loss", "Train Loss"), ("val_loss", "Val Loss")]:
         if history.get(key):
@@ -80,7 +103,7 @@ def plot_training_curves(history, num_epochs, label_length, save_dir=None, show=
             show=show,
         )
 
-    # Log error rate (1 − accuracy): reveals improvement at low error that
+    # Log error rate (1 − accuracy): reveals fine-grained improvement that
     # linear plots compress near zero.  Zero-error points are undefined on
     # log scale and silently omitted by matplotlib.
     err_curves = []

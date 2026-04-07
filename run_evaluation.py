@@ -93,7 +93,7 @@ DEFAULTS = {
 # ---------------------------------------------------------------------------
 EVALUATIONS = [
     {
-        "experiment_dir": "experiments/cnn_baseline_no_tune_correction",
+        "experiment_dir": "experiments/CNN_test",
         # Examples of optional overrides — uncomment to use:
         # "data_dir":   "data/processed/5Char_360k_AlpNum_grayscale",
         # "charset":    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -117,6 +117,35 @@ def _save_json(data, path):
     with open(path, "w") as f:
         json.dump(data, f, indent=4)
     print(f"    [saved] {path.name}")
+
+
+def _backfill_log_training_curves(exp_dir):
+    """
+    Generate log-scale training-history plots for exp_dir if they are missing.
+
+    Saves into the experiment folder alongside the existing linear plots.
+    Skips silently if both files already exist; logs a single line otherwise.
+    All failures are caught so they never interrupt the evaluation pipeline.
+    """
+    from src.training.evaluate import plot_log_training_curves
+
+    log_loss  = exp_dir / "log_loss_curves.png"
+    log_error = exp_dir / "log_error_curves.png"
+    if log_loss.exists() and log_error.exists():
+        return  # already up to date
+
+    history_path = exp_dir / "training_history.json"
+    if not history_path.exists():
+        print(f"  [skip] log-curve backfill: training_history.json not found in {exp_dir.name}")
+        return
+
+    try:
+        with open(history_path) as f:
+            history = json.load(f)
+        plot_log_training_curves(history, save_dir=exp_dir, show=False)
+        print(f"  [backfill] log training curves → {exp_dir.name}/")
+    except Exception as exc:
+        print(f"  [skip] log-curve backfill failed for {exp_dir.name}: {exc}")
 
 
 def _run_eval_suite(model, loader, device, idx_to_char, out_dir, split, cfg):
@@ -254,6 +283,9 @@ def run_one_evaluation(eval_cfg):
 
     with open(config_path) as f:
         exp_config = json.load(f)
+
+    # -- Backfill log training-history plots if missing from the experiment folder --
+    _backfill_log_training_curves(exp_dir)
 
     # -- Effective settings: exp_config provides base, eval_cfg overrides --
     def get(key, fallback=None):
