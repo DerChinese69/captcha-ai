@@ -93,7 +93,7 @@ DEFAULTS = {
 # ---------------------------------------------------------------------------
 EVALUATIONS = [
     {
-        "experiment_dir": "experiments/CNN_test",
+        "experiment_dir": "experiments/Alphanumerical/CNN_AlpNum",
         # Examples of optional overrides — uncomment to use:
         # "data_dir":   "data/processed/5Char_360k_AlpNum_grayscale",
         # "charset":    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -103,6 +103,21 @@ EVALUATIONS = [
     },
     # Add more runs below, e.g.:
     # {"experiment_dir": "experiments/vit_01_baseline"},
+    {
+        "experiment_dir": "experiments/Alphanumerical/ViT_AlpNum",
+    },
+    {
+        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_01_baseline_long",
+    },
+    {
+        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_02_lower_reg/",
+    },
+    {
+        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_03_lower_lr/",
+    },
+    {
+        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_04_smaller_model/",
+    },
 ]
 
 # ===========================================================================
@@ -311,7 +326,16 @@ def run_one_evaluation(eval_cfg):
 
     # -- Device --
     device_str = eval_cfg.get("device") or exp_config.get("device")
-    device = torch.device(device_str) if device_str else eval_utils.auto_device()
+    if device_str:
+        requested = torch.device(device_str)
+        if requested.type == "cuda" and not torch.cuda.is_available():
+            device = eval_utils.auto_device()
+        elif requested.type == "mps" and not torch.backends.mps.is_available():
+            device = eval_utils.auto_device()
+        else:
+            device = requested
+    else:
+        device = eval_utils.auto_device()
 
     # -- Run name and output directory --
     run_name = exp_config.get("run_name", exp_dir.name)

@@ -46,8 +46,8 @@ EXPERIMENTS_DIR = REPO_ROOT / "experiments"
 # ---------------------------------------------------------------------------
 DEFAULTS = {
     # Dataset
-    "data_dir":        "data/processed/5Char_260k_Alp_grayscale",
-    "charset":         "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "data_dir":        "data/processed/5Char_100k_Num_grayscale",
+    "charset":         "0123456789",
     "subset_fraction": 1.0,
 
     # Data splits
@@ -93,97 +93,14 @@ DEFAULTS = {
 # ---------------------------------------------------------------------------
 EXPERIMENTS = [
     {
-    "run_name":      "vit_alphabet_final",
-    "model_name":    "ViT",
+        "run_name":      "CNN_test",
+        "model_name":    "CNN",
+        "learning_rate": 1e-3,
+        "batch_size":    128,
+        "num_epochs":    10,
 
-    "data_dir":      "data/processed/5Char_260k_Alp_grayscale",
-    "charset":       "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-
-    "learning_rate": 1e-4,
-    "batch_size":    16,
-    "num_epochs":    30,
-
-    "weight_decay":  1e-4,
-    "dropout":       0.1,
-
-    "use_scheduler": True,
-    "scheduler_step_size": 5,
-    "scheduler_gamma": 0.5,
-
-    "val_loss_stop_threshold": 0.15,
-
-    "img_size":      (64, 192),
-    "patch_size":    (8, 8),
-    "embed_dim":     192,
-    "depth":         6,
-    "num_heads":     6,
-},
-{
-    "run_name":      "vit_numeric_final",
-    "model_name":    "ViT",
-
-    "data_dir":      "data/processed/5Char_100k_Num_grayscale",
-    "charset":       "0123456789",
-
-    "learning_rate": 1e-4,
-    "batch_size":    20,
-    "num_epochs":    25,
-
-    "weight_decay":  1e-4,
-    "dropout":       0.0,
-
-    "use_scheduler": True,
-    "scheduler_step_size": 5,
-    "scheduler_gamma": 0.5,
-
-    "val_loss_stop_threshold": 0.15,
-
-    "img_size":      (64, 192),
-    "patch_size":    (8, 8),
-    "embed_dim":     128,
-    "depth":         4,
-    "num_heads":     4,
-},
-{
-    "run_name":      "cnn_alphabet_final",
-    "model_name":    "CNN",
-
-    "data_dir":      "data/processed/5Char_260k_Alp_grayscale",
-    "charset":       "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-
-    "learning_rate": 3e-4,
-    "batch_size":    64,
-    "num_epochs":    30,
-
-    "weight_decay":  1e-5,
-    "dropout":       0.1,
-
-    "use_scheduler": True,
-    "scheduler_step_size": 5,
-    "scheduler_gamma": 0.5,
-
-    "val_loss_stop_threshold": 0.10,
-},
-{
-    "run_name":      "cnn_numeric_final",
-    "model_name":    "CNN",
-
-    "data_dir":      "data/processed/5Char_100k_Num_grayscale",
-    "charset":       "0123456789",
-
-    "learning_rate": 3e-4,
-    "batch_size":    64,
-    "num_epochs":    25,
-
-    "weight_decay":  0.0,
-    "dropout":       0.0,
-
-    "use_scheduler": True,
-    "scheduler_step_size": 5,
-    "scheduler_gamma": 0.5,
-
-    "val_loss_stop_threshold": 0.10,
-}
+        "subset_fraction": 0.01,  # Smoke test on 0.5% of data
+    }
 ]
 
 # ---------------------------------------------------------------------------
