@@ -1,0 +1,58 @@
+{
+    "data_dir": "data/processed/5Char_360k_AlpNum_grayscale",
+    "charset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "subset_fraction": 1.0,
+    "train_ratio": 0.75,
+    "val_ratio": 0.15,
+    "test_ratio": 0.1,
+    "random_seed": 69,
+    "num_workers": 0,
+    "pin_memory": false,
+    "drop_last": false,
+    "weight_decay": 5e-05,
+    "dropout": 0.0,
+    "use_scheduler": true,
+    "scheduler_step_size": 5,
+    "scheduler_gamma": 0.5,
+    "val_loss_stop_threshold": 0.15,
+    "img_size": [
+        64,
+        192
+    ],
+    "patch_size": [
+        8,
+        8
+    ],
+    "embed_dim": 192,
+    "depth": 6,
+    "num_heads": 6,
+    "run_name": "vit_alpnum_02_lower_reg",
+    "model_name": "ViT",
+    "learning_rate": 0.0001,
+    "batch_size": 16,
+    "num_epochs": 20,
+    "num_char_classes": 36,
+    "label_length": 5,
+    "device": "cuda",
+    "is_smoke": false,
+    "num_epochs_configured": 20,
+    "subset_fraction_actual": 1.0,
+    "num_workers_actual": 0,
+    "pin_memory_actual": false,
+    "model_kwargs": {
+        "img_size": [
+            64,
+            192
+        ],
+        "patch_size": [
+            8,
+            8
+        ],
+        "embed_dim": 192,
+        "depth": 6,
+        "num_heads": 6,
+        "num_classes": 36,
+        "label_length": 5,
+        "dropout": 0.0
+    }
+}

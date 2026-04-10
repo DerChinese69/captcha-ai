@@ -126,6 +126,68 @@ def plot_log_training_curves(history, save_dir=None, show=False):
             show=show,
         )
 
+    # Separate log-scale char-accuracy error plot
+    char_err_curves = []
+    eps = 1e-6
+    for key, label in [
+        ("train_char_acc", "Train Char Error"),
+        ("val_char_acc",   "Val Char Error"),
+    ]:
+        if history.get(key):
+            char_err_curves.append(([max(1.0 - v, eps) for v in history[key]], label))
+    if char_err_curves:
+        char_save = Path(save_dir) / "training_curves_log_char_accuracy.png" if save_dir else None
+        if char_save is None or not char_save.exists():
+            _plot(
+                epochs,
+                curves=char_err_curves,
+                ylabel="Char Error Rate  (1 − char_acc, log scale)",
+                title="Character Accuracy Error Rate  [log scale]",
+                yscale="log",
+                save_path=char_save,
+                show=show,
+            )
+
+
+def plot_log_validation_per_position_accuracy(
+    history,
+    label_length,
+    save_dir=None,
+    show=False,
+    filename="training_curves_log_val_pos_accuracy.png",
+):
+    """
+    Plot validation per-position error rate on a log scale.
+
+    Uses (1 - accuracy) for each position so improvements near perfect
+    accuracy remain visible on a log axis.
+    """
+    n = len(history.get("val_loss") or [])
+    if n == 0:
+        return
+
+    epochs = range(1, n + 1)
+    eps = 1e-6
+    curves = []
+
+    for i in range(label_length):
+        key = f"val_pos_acc_{i}"
+        if history.get(key):
+            curves.append(([max(1.0 - v, eps) for v in history[key]], f"Val Pos {i} Error"))
+
+    if not curves:
+        return
+
+    _plot(
+        epochs,
+        curves=curves,
+        ylabel="Error Rate  (1 - accuracy, log scale)",
+        title="Validation Per-Position Error Rate  [log scale]",
+        yscale="log",
+        save_path=Path(save_dir) / filename if save_dir else None,
+        show=show,
+    )
+
 
 def _plot(epochs, curves, ylabel, title, save_path=None, show=True, yscale="linear"):
     plt.figure(figsize=(8, 5))

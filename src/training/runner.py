@@ -83,7 +83,26 @@ def run_one_experiment(cfg, experiments_dir, verbose=True, is_smoke=False):
 
     # Resolve epoch / subset overrides for smoke mode
     num_epochs = 2 if is_smoke else cfg["num_epochs"]
-    subset_fraction = 0.005 if is_smoke else cfg.get("subset_fraction", 1.0)
+    if is_smoke:
+        subset_fraction = 0.005
+        # Ensure the smoke pre-flight has enough samples for a valid train/val/test split.
+        # (With a 75/15/10 split we need at least ~20 samples.)
+        # For tiny committed datasets the 0.5% cap gives 0 samples; clamp it up.
+        try:
+            csv_path = None
+            for base in [Path.cwd(), Path(experiments_dir).parent]:
+                candidate = base / cfg["data_dir"] / "ground_truth_index.csv"
+                if candidate.exists():
+                    csv_path = candidate
+                    break
+            if csv_path is not None:
+                with open(csv_path) as _f:
+                    n_rows = sum(1 for _ in _f) - 1  # subtract header
+                subset_fraction = max(subset_fraction, 20 / max(n_rows, 1))
+        except Exception:
+            pass
+    else:
+        subset_fraction = cfg.get("subset_fraction", 1.0)
 
     print(f"\n{'='*60}")
     print(f"{'SMOKE TEST' if is_smoke else 'RUN'}: {run_dir.name}")

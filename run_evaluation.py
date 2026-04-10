@@ -92,33 +92,21 @@ DEFAULTS = {
 #   unseen_charset    — charset for that dataset (defaults to main charset)
 # ---------------------------------------------------------------------------
 EVALUATIONS = [
+    # Add entries here — one dict per experiment to evaluate.
+    # Example with all optional overrides:
+    #
+    #   {
+    #       "experiment_dir": "experiments/CNN_AlpNum",
+    #       "data_dir":       "data/processed/5Char_360k_AlpNum_grayscale",  # optional override
+    #       "charset":        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",         # optional override
+    #       "device":         "cpu",                                           # optional override
+    #       "unseen_data_dir": "data/processed/unseen_test_random_data",       # optional second dataset
+    #       "unseen_charset":  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    #   },
     {
-        "experiment_dir": "experiments/Alphanumerical/CNN_AlpNum",
-        # Examples of optional overrides — uncomment to use:
-        # "data_dir":   "data/processed/5Char_360k_AlpNum_grayscale",
-        # "charset":    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        # "device":     "cpu",
-        # "unseen_data_dir": "data/processed/5Char_100k_Num_grayscale",
-        # "unseen_charset":  "0123456789",
-    },
-    # Add more runs below, e.g.:
-    # {"experiment_dir": "experiments/vit_01_baseline"},
-    {
-        "experiment_dir": "experiments/Alphanumerical/ViT_AlpNum",
-    },
-    {
-        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_01_baseline_long",
-    },
-    {
-        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_02_lower_reg/",
-    },
-    {
-        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_03_lower_lr/",
-    },
-    {
-        "experiment_dir": "experiments/Alphanumerical/vit_alpnum_04_smaller_model/",
-    },
-]
+        "experiment_dir": "experiments/CNN_test",
+    }, 
+    ] 
 
 # ===========================================================================
 # Internal helpers — not intended to be edited
@@ -144,9 +132,10 @@ def _backfill_log_training_curves(exp_dir):
     """
     from src.training.evaluate import plot_log_training_curves
 
-    log_loss  = exp_dir / "log_loss_curves.png"
-    log_error = exp_dir / "log_error_curves.png"
-    if log_loss.exists() and log_error.exists():
+    log_loss     = exp_dir / "log_loss_curves.png"
+    log_error    = exp_dir / "log_error_curves.png"
+    log_char_acc = exp_dir / "training_curves_log_char_accuracy.png"
+    if log_loss.exists() and log_error.exists() and log_char_acc.exists():
         return  # already up to date
 
     history_path = exp_dir / "training_history.json"
@@ -316,6 +305,7 @@ def run_one_evaluation(eval_cfg):
     batch_size  = get("batch_size",  64)
     num_workers = get("num_workers", 0)
     pin_memory  = get("pin_memory",  False)
+    subset_fraction = get("subset_fraction", 1.0)
     label_length = exp_config["label_length"]
 
     # Split ratios — must match training to reproduce the same test fold
@@ -383,6 +373,7 @@ def run_one_evaluation(eval_cfg):
         num_workers=num_workers,
         pin_memory=pin_memory,
         label_length=label_length,
+        subset_fraction=subset_fraction,
         return_filenames=True,
     )
 

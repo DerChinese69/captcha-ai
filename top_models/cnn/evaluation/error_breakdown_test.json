@@ -1,0 +1,11 @@
+{
+    "total_samples": 36000,
+    "exact_match": 32944,
+    "one_error": 2627,
+    "two_errors": 359,
+    "three_or_more_errors": 70,
+    "exact_match_proportion": 0.915111,
+    "one_error_proportion": 0.072972,
+    "two_errors_proportion": 0.009972,
+    "three_or_more_proportion": 0.001944
+}

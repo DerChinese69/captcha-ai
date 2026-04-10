@@ -16,9 +16,13 @@ How to configure:
     - Any key in an experiment dict overrides the corresponding default.
 
 Available datasets (data/processed/):
-    5Char_100k_Num_grayscale            charset="0123456789"                           (100k samples)
-    5Char_260k_Alp_grayscale            charset="ABCDEFGHIJKLMNOPQRSTUVWXYZ"           (260k samples)
-    5Char_360k_AlpNum_grayscale         charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" (360k samples)
+    Smoke_grayscale             charset="0123456789"  (30 synthetic images — included in repo)
+    5Char_100k_Num_grayscale    charset="0123456789"                           (100k samples)
+    5Char_260k_Alp_grayscale    charset="ABCDEFGHIJKLMNOPQRSTUVWXYZ"           (260k samples)
+    5Char_360k_AlpNum_grayscale charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" (360k samples)
+
+    Download the full datasets from Kaggle (see README).
+    Smoke_grayscale is committed to git and works without any download.
 """
 
 from pathlib import Path
@@ -92,15 +96,19 @@ DEFAULTS = {
 #   num_epochs
 # ---------------------------------------------------------------------------
 EXPERIMENTS = [
+    # --- Default: tiny smoke run on the included 30-image dataset ---
+    # Works immediately after cloning — no Kaggle download required.
+    # Replace data_dir / charset to train on a real dataset.
     {
         "run_name":      "CNN_test",
         "model_name":    "CNN",
         "learning_rate": 1e-3,
-        "batch_size":    128,
-        "num_epochs":    10,
-
-        "subset_fraction": 0.01,  # Smoke test on 0.5% of data
-    }
+        "batch_size":    8,
+        "num_epochs":    2,
+        "data_dir":      "data/processed/Smoke_grayscale",
+        "charset":       "0123456789",
+        "subset_fraction": 1.0,
+    },
 ]
 
 # ---------------------------------------------------------------------------

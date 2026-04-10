@@ -209,6 +209,7 @@ def evaluate_run(run_dir, data_dir, charset, device_override):
         num_workers=config.get("num_workers", 0),
         pin_memory=config.get("pin_memory", False),
         label_length=label_length,
+        subset_fraction=config.get("subset_fraction", 1.0),
     )
 
     # -- Model --

@@ -1,41 +1,73 @@
-# Python cache files
+# ============================================================
+# Python
+# ============================================================
 __pycache__/
 *.pyc
+*.pyo
 
-# Jupyter Notebook checkpoints
+# ============================================================
+# Jupyter
+# ============================================================
 .ipynb_checkpoints/
 
+# ============================================================
 # Virtual environment
+# ============================================================
 .venv/
 
-#Claude
+# ============================================================
+# IDE / tooling
+# ============================================================
 .claude/
-
-# MacOS system files
 .DS_Store
 
-#Data folders: No contents, but keep the folders for organization
-data/orders/*
-data/raw/*
-data/processed/*
-experiments/*
-Old_experiments/*
-evaluation/*
-!data/orders/.gitkeep
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-!experiments/.gitkeep
-!evaluation/.gitkeep
-
-#Data folders: Completely Local, not shared across machines
-vendor/
-reports/
-notebooks/development/
-
-# model weights
+# ============================================================
+# Model weights (tracked in top_models/ via README; .pt excluded)
+# ============================================================
 *.pt
 *.pth
 *.ckpt
 
-#other
+# ============================================================
+# Data — large or generated; not committed to git.
+# Folder stubs (.gitkeep) are committed to preserve structure.
+# Download datasets from Kaggle (see README).
+# ============================================================
+data/raw/*
+!data/raw/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/Smoke_grayscale/
+!data/processed/Smoke_grayscale/**
+
+# Order manifests (generated locally by generate_order.py)
+data/orders/*
+!data/orders/.gitkeep
+
+# Legacy order directory (pre-April 2026 runs)
+data/kaggle_orders/*
+!data/kaggle_orders/.gitkeep
+
+# ============================================================
+# Experiment & evaluation outputs — not committed.
+# JSON metadata under top_models/ is committed instead.
+# ============================================================
+experiments/*
+!experiments/.gitkeep
+
+evaluation/*
+!evaluation/.gitkeep
+
+Old_experiments/*
+
+# ============================================================
+# PHP vendor (Gregwar/Captcha renderer — install via composer)
+# ============================================================
+vendor/
+
+# ============================================================
+# Misc
+# ============================================================
 generation_log.txt
+reports/

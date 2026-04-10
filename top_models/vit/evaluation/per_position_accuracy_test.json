@@ -1,0 +1,41 @@
+{
+    "total_samples": 36000,
+    "label_length": 5,
+    "positions": [
+        {
+            "position": 0,
+            "position_label": "Position 1",
+            "correct": 35478,
+            "total": 36000,
+            "accuracy": 0.9855
+        },
+        {
+            "position": 1,
+            "position_label": "Position 2",
+            "correct": 35217,
+            "total": 36000,
+            "accuracy": 0.97825
+        },
+        {
+            "position": 2,
+            "position_label": "Position 3",
+            "correct": 35068,
+            "total": 36000,
+            "accuracy": 0.974111
+        },
+        {
+            "position": 3,
+            "position_label": "Position 4",
+            "correct": 35267,
+            "total": 36000,
+            "accuracy": 0.979639
+        },
+        {
+            "position": 4,
+            "position_label": "Position 5",
+            "correct": 35502,
+            "total": 36000,
+            "accuracy": 0.986167
+        }
+    ]
+}

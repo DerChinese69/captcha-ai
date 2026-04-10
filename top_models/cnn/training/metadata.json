@@ -1,0 +1,26 @@
+{
+    "run_name": "CNN_AlpNum",
+    "model_type": "CNN",
+    "timestamp": "2026-04-05T00:02:49",
+    "total_training_time_s": 17797.52,
+    "epochs_completed": 40,
+    "best_val_loss": 0.06329,
+    "best_val_seq_acc": 0.912396,
+    "best_epoch": 40,
+    "stop_reason": "completed",
+    "hyperparameters": {
+        "learning_rate": 0.0003,
+        "batch_size": 64,
+        "weight_decay": 1e-05,
+        "dropout": 0.3,
+        "num_epochs": 40,
+        "subset_fraction": 1.0,
+        "val_loss_stop_threshold": 0.15,
+        "use_scheduler": true
+    },
+    "data_dir": "data/processed/5Char_360k_AlpNum_grayscale",
+    "charset": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "num_char_classes": 36,
+    "label_length": 5,
+    "device": "mps"
+}

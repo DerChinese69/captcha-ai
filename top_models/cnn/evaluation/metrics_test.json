@@ -1,0 +1,8 @@
+{
+    "sequence_accuracy": 0.915111,
+    "character_accuracy": 0.980167,
+    "total_samples": 36000,
+    "total_characters": 180000,
+    "correct_sequences": 32944,
+    "correct_characters": 176430
+}
