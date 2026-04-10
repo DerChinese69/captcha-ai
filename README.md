@@ -32,9 +32,8 @@ are produced by `run_evaluation.py`.
 9. [Compare experiments](#compare-experiments)
 10. [Top models](#top-models)
 11. [Example workflow](#example-workflow)
-12. [Student-friendly explanation](#student-friendly-explanation)
-13. [Known limitations & future work](#known-limitations--future-work)
-14. [License](#license)
+12. [Known limitations & future work](#known-limitations--future-work)
+13. [License](#license)
 
 ---
 
