@@ -256,11 +256,21 @@ pipeline is wired up correctly.
 
 ## Dataset
 
-### Download from Kaggle (recommended)
+### Download from Kaggle
 
-The datasets used in this project are published on Kaggle:
+The datasets used in this project are publicly available on Kaggle:
 
-> **Kaggle dataset:** *[link placeholder — add your Kaggle URL here]*
+> ### Datasets
+
+- **Numeric (5-character, class-balanced)**  
+  https://www.kaggle.com/datasets/derchinese69/captcha-dataset-5char-numeric-class-balanced  
+
+- **Alphabetic (5-character, class-balanced)**  
+  https://www.kaggle.com/datasets/derchinese69/captcha-dataset-5char-alphabet-class-balanced  
+
+- **Alphanumeric (5-character, class-balanced)**  
+  https://www.kaggle.com/datasets/derchinese69/5-char-alphanumeric-captcha-class-balanced 
+
 
 Place the downloaded folders under `data/processed/` so they match this layout:
 
@@ -535,37 +545,6 @@ python compare_experiments.py
 python run_experiments.py
 # (with run_name="CNN_test", model_name="CNN", subset_fraction=0.01 in EXPERIMENTS)
 ```
-
----
-
-## Student-friendly explanation
-
-**What is a CAPTCHA?**
-A CAPTCHA is a distorted image of text that humans can read but automated
-systems are supposed to struggle with. This project builds a neural network
-that learns to read them anyway.
-
-**How does it work?**
-
-1. The network sees a grayscale image (64×192 pixels) of 5 characters.
-2. For the CNN: convolutional layers extract local features (edges, curves).
-   A pooling step divides the image into 5 vertical slots — one per character.
-   A small classifier predicts which character is in each slot.
-3. For the ViT: the image is split into 96 small patches (8×16 pixels each).
-   A transformer encoder looks at all patches simultaneously and learns which
-   patches relate to each character. A pooling step then produces one
-   embedding per character slot.
-4. Both models output a probability distribution over all possible characters
-   (10 digits or 26 letters or 36 total) for each of the 5 positions.
-5. Training uses cross-entropy loss — the model is penalised for wrong guesses
-   and rewarded for correct ones.
-
-**Why does the CNN do almost as well as the ViT with far less code?**
-CAPTCHAs have strong spatial structure: character 1 is always on the left,
-character 5 is always on the right. CNNs are built to exploit exactly this
-kind of local, positional structure. The ViT learns the same thing from data
-but starts with no such assumption.
-
 ---
 
 ## Known limitations & future work
