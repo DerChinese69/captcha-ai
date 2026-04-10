@@ -568,9 +568,7 @@ python run_experiments.py
 
 ## AI-assisted development
 
-AI tools (Claude) were used to support development: debugging, refactoring,
-and iteration speed. All architectural and methodological decisions were made
-by the project author.
+AI tools (e.g. Claude) were used to assist with development tasks such as debugging, refactoring, and accelerating iteration. All design, architectural, and experimental decisions were made by the project author.
 
 ---
 
